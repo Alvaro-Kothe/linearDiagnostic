@@ -26,9 +26,4 @@ generator <- function(n, mu) rt(n, 3) + mu
 
 simulate_coefficients(fit, generator = generator)
 
-library(MASS)
-
-fit <- glm.nb(Days ~ Sex/(Age + Eth*Lrn), data = quine)
-
-simulate_coefficients(fit)
 }

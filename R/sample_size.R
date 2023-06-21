@@ -14,11 +14,6 @@
 #'
 #' simulate_coefficients(fit, generator = generator)
 #'
-#' library(MASS)
-#'
-#' fit <- glm.nb(Days ~ Sex/(Age + Eth*Lrn), data = quine)
-#'
-#' simulate_coefficients(fit)
 simulate_coefficients <- function(model, generator = NULL, n_sim = 100) {
   if (is.null(generator)) {
     y_star <- stats::simulate(model, n_sim)
