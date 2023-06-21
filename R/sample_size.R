@@ -20,14 +20,12 @@ simulate_coefficients <- function(model, generator = NULL, n_sim = 100) {
   } else {
     mu <- stats::fitted(model)
     y_star <- replicate(n_sim,
-                        generator(n = length(mu), mu = mu),
-                        simplify = FALSE
+      generator(n = length(mu), mu = mu),
+      simplify = FALSE
     )
     names(y_star) <- paste0("sim_", seq_along(y_star))
   }
   model_frame <- stats::model.frame(model)
-  model_terms <- stats::terms(stats::formula(model))
-
 
   coefs <- list()
   variances <- list()
@@ -47,30 +45,72 @@ simulate_coefficients <- function(model, generator = NULL, n_sim = 100) {
 
   names(coefs) <- names(variances) <- names(y_star)
 
-  return(list(coefs = coefs, variances = variances))
+  return(list(coefs = coefs, vcov = variances))
 }
 
 compute_p_values <- function(simulation_coefs, simulation_vcov, model) {
-    standard_coef <- sapply(seq_along(simulation_coefs), function(i) {
-      (simulation_coefs[[i]] - coef(model)) / sqrt(diag(simulation_vcov[[i]]))
-    })
-    colnames(standard_coef) <- names(simulation_coefs)
+  standard_coef <- sapply(seq_along(simulation_coefs), function(i) {
+    (simulation_coefs[[i]] - stats::coef(model)) / sqrt(diag(simulation_vcov[[i]]))
+  })
+  colnames(standard_coef) <- names(simulation_coefs)
 
-  p_values <- 1 - pchisq(standard_coef^2, 1)
+  p_values <- 1 - stats::pchisq(standard_coef^2, 1)
 
   return(p_values)
 }
 
 compute_p_values_joint <- function(simulation_coefs, simulation_vcov, model) {
   chisq_stat <- sapply(seq_along(simulation_coefs), function(i) {
-    t(simulation_coefs[[i]] - coef(model)) %*%
+    t(simulation_coefs[[i]] - stats::coef(model)) %*%
       solve(simulation_vcov[[i]]) %*%
-      (simulation_coefs[[i]] - coef(model))
+      (simulation_coefs[[i]] - stats::coef(model))
   })
 
-  p_values <- 1 - pchisq(chisq_stat, length(coef(model)))
+  p_values <- 1 - stats::pchisq(chisq_stat, length(stats::coef(model)))
 
   return(p_values)
 }
 
-# TODO: Create functions that wraps all functions above
+#' Plot Simulation p-values
+#'
+#' @param model A model with [update()] method.
+#' @param generator Optional custom generator function with 2 arguments (n, mu).
+#' @param n_sim Number of simulations.
+#' @param which vector of integers with model coefficients indices to plot.
+#' @param caption Plot title for each coefficient.
+#' @param ylab y-axis label
+#' @param xlab x-axis label
+#' @param ... Extra arguments from [plot()]
+#' @param ask Logical, ask to show next plot
+#'
+#' @return Matrix with p_values obtained from the simulations.
+#' @export
+#'
+#' @examples
+#' fit <- lm(mpg ~ cyl, data = mtcars)
+#'
+#' plot_pvalues_ecdf(fit)
+plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
+                              which = seq_along(stats::coef(model)),
+                              caption = paste("ECDF of", names(stats::coef(model)))[which],
+                              ylab = "Fn(x)", xlab = "x", ...,
+                              ask = prod(graphics::par("mfcol")) < length(which) && grDevices::dev.interactive()) {
+  if (ask) {
+    oask <- grDevices::devAskNewPage(TRUE)
+    on.exit(grDevices::devAskNewPage(oask))
+  }
+  simulation <- simulate_coefficients(model = model, generator = generator, n_sim = n_sim)
+  p_values <- compute_p_values(
+    simulation_coefs = simulation$coefs,
+    simulation_vcov = simulation$vcov,
+    model = model
+  )
+  for (i in which) {
+    p_value <- p_values[i, ]
+    ecdf_ <- stats::ecdf(p_value)
+    x <- seq(0, 1, length.out = 201)
+    plot(x, ecdf_(x), type = "l", main = caption[i], ylab = ylab, xlab = xlab, ...)
+    graphics::lines(x, stats::punif(x), lty = 2)
+  }
+  return(invisible(p_values))
+}
