@@ -1,16 +1,38 @@
-simulate_coefficients <- function(model, generator = NULL, n_sim = 100, verbose = FALSE) {
+#' Simulate Model Coefficients
+#'
+#' @param model A model with `update` method
+#' @param generator Optional custom generator function with 2 arguments (n, mu)
+#' @param n_sim Number of simulations
+#'
+#' @return A list with a list for coefficients and a list with vcov, each of length n_sim
+#' @export
+#'
+#' @examples
+#' fit <- lm(mpg ~ cyl, data = mtcars)
+#'
+#' generator <- function(n, mu) rt(n, 3) + mu
+#'
+#' simulate_coefficients(fit, generator = generator)
+#'
+#' library(MASS)
+#'
+#' fit <- glm.nb(Days ~ Sex/(Age + Eth*Lrn), data = quine)
+#'
+#' simulate_coefficients(fit)
+simulate_coefficients <- function(model, generator = NULL, n_sim = 100) {
   if (is.null(generator)) {
-    y_star <- simulate(model, n_sim)
+    y_star <- stats::simulate(model, n_sim)
   } else {
-    mu <- fitted(model)
+    mu <- stats::fitted(model)
     y_star <- replicate(n_sim,
                         generator(n = length(mu), mu = mu),
                         simplify = FALSE
     )
     names(y_star) <- paste0("sim_", seq_along(y_star))
   }
-  model_frame <- model.frame(model)
-  model_terms <- terms(formula(model))
+  model_frame <- stats::model.frame(model)
+  model_terms <- stats::terms(stats::formula(model))
+
 
   coefs <- list()
   variances <- list()
@@ -18,14 +40,14 @@ simulate_coefficients <- function(model, generator = NULL, n_sim = 100, verbose 
   for (i in seq_along(y_star)) {
     y_ <- y_star[[i]]
 
-    formula_new_response <- as.formula(
+    formula_new_response <- stats::as.formula(
       paste(enquote(y_)[2], "~.", collapse = "")
     )
 
-    refit <- update(model, formula. = formula_new_response, data = model_frame)
+    refit <- stats::update(model, formula. = formula_new_response, data = model_frame)
 
-    coefs[[i]] <- coef(refit)
-    variances[[i]] <- vcov(refit)
+    coefs[[i]] <- stats::coef(refit)
+    variances[[i]] <- stats::vcov(refit)
   }
 
   names(coefs) <- names(variances) <- names(y_star)
