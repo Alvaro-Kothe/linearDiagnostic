@@ -12,13 +12,13 @@ plot_envelope(
 )
 }
 \arguments{
-\item{model}{A model with `update` method}
+\item{model}{A model with [update()] method}
 
 \item{xlab}{x-axis label}
 
 \item{ylab}{y-axis label}
 
-\item{...}{Additional arguments for `envelope_measures()`}
+\item{...}{Additional arguments for [envelope_measures()]}
 }
 \value{
 Creates the simulated envelope plot and returns its components

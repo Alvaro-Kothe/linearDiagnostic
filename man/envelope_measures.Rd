@@ -12,7 +12,7 @@ envelope_measures(
 )
 }
 \arguments{
-\item{model}{A model with `update` method}
+\item{model}{A model with [stats::update()] method}
 
 \item{residual_fn}{Function to compute residual using `model`}
 

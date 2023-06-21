@@ -7,7 +7,7 @@
 simulate_coefficients(model, generator = NULL, n_sim = 100)
 }
 \arguments{
-\item{model}{A model with `update` method}
+\item{model}{A model with [update()] method}
 
 \item{generator}{Optional custom generator function with 2 arguments (n, mu)}
 

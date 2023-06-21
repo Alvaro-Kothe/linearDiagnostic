@@ -1,6 +1,6 @@
 #' Generate Simulated Envelope Measures
 #'
-#' @param model A model with `update` method
+#' @param model A model with [stats::update()] method
 #' @param residual_fn Function to compute residual using `model`
 #' @param alpha Confidence Band level
 #' @param n_sim Number of simulations
@@ -62,11 +62,11 @@ plot_envelope_base <- function(expected, observed, lower, med, upper,
 
 #' Plot Simulated Envelope
 #'
-#' @param model A model with `update` method
+#' @param model A model with [update()] method
 #' @param xlab x-axis label
 
 #' @param ylab y-axis label
-#' @param ... Additional arguments for `envelope_measures()`
+#' @param ... Additional arguments for [envelope_measures()]
 #'
 #' @return Creates the simulated envelope plot and returns its components
 #' @export

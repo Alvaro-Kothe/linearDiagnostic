@@ -1,6 +1,6 @@
 #' Simulate Model Coefficients
 #'
-#' @param model A model with `update` method
+#' @param model A model with [update()] method
 #' @param generator Optional custom generator function with 2 arguments (n, mu)
 #' @param n_sim Number of simulations
 #'
