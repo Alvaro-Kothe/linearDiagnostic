@@ -18,7 +18,7 @@
 #' envelope_measures(fit, n_sim = 200)
 #' envelope_measures(fit, residual_fn = rstandard, n_sim = 200)
 envelope_measures <- function(model, residual_fn = stats::rstudent,
-                                alpha = .05, n_sim = 100) {
+                              alpha = .05, n_sim = 100) {
   td <- residual_fn(model)
   model_frame <- stats::model.frame(model)
   n <- length(td)
@@ -50,14 +50,13 @@ envelope_measures <- function(model, residual_fn = stats::rstudent,
 }
 
 plot_envelope_base <- function(expected, observed, lower, med, upper,
-                             xlab = "Expected quantiles",
-                             ylab = "Observed quantiles") {
-
-  graphics::plot(expected, observed, type = "p", pch = 20, xlab=xlab, ylab=ylab)
+                               xlab = "Expected quantiles",
+                               ylab = "Observed quantiles") {
+  graphics::plot(expected, observed, type = "p", pch = 20, xlab = xlab, ylab = ylab)
   graphics::lines(expected, lower, lty = 1)
   graphics::lines(expected, upper, lty = 1)
   graphics::lines(expected, med, lty = 2)
-  return(invisible(list(x = expected, y = observed, lower=lower, upper=upper, med=med)))
+  return(invisible(list(x = expected, y = observed, lower = lower, upper = upper, med = med)))
 }
 
 #' Plot Simulated Envelope
@@ -76,12 +75,12 @@ plot_envelope_base <- function(expected, observed, lower, med, upper,
 #'
 #' plot_envelope(fit)
 plot_envelope <- function(model, xlab = "Expected quantiles", ylab = "Observed quantiles", ...) {
-
   env_meas <- envelope_measures(model, ...)
 
   envelope_plot <- plot_envelope_base(env_meas$expected, env_meas$observed,
-                                 env_meas$lower, env_meas$med, env_meas$upper,
-                                 xlab = xlab, ylab = ylab)
+    env_meas$lower, env_meas$med, env_meas$upper,
+    xlab = xlab, ylab = ylab
+  )
 
 
   return(invisible(envelope_plot))

@@ -5,6 +5,3 @@
 ^\.pre-commit-config\.yaml$
 ^renv$
 ^renv\.lock$
-^.*\.Rproj$
-^\.Rproj\.user$
-^LICENSE\.md$
