@@ -2,5 +2,6 @@
 
 export(envelope_measures)
 export(plot_envelope)
+export(plot_joint_pvalues_ecdf)
 export(plot_pvalues_ecdf)
 export(simulate_coefficients)

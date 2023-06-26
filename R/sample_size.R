@@ -114,3 +114,34 @@ plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
   }
   return(invisible(p_values))
 }
+
+#' Plot Simulation joint p-values
+#'
+#' @param model A model with [update()] method.
+#' @param generator Optional custom generator function with 2 arguments (n, mu).
+#' @param n_sim Number of simulations.
+#' @param ylab y-axis label
+#' @param xlab x-axis label
+#' @param ... Extra arguments from [plot()]
+#'
+#' @return Double vector with joint p-values.
+#' @export
+#'
+#' @examples
+#' fit <- lm(mpg ~ cyl, data = mtcars)
+#'
+#' plot_joint_pvalues_ecdf(fit)
+plot_joint_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
+                                    ylab = "Fn(x)", xlab = "x", ...) {
+  simulation <- simulate_coefficients(model = model, generator = generator, n_sim = n_sim)
+  p_value <- compute_p_values_joint(
+    simulation_coefs = simulation$coefs,
+    simulation_vcov = simulation$vcov,
+    model = model
+  )
+  ecdf_ <- stats::ecdf(p_value)
+  x <- seq(0, 1, length.out = 201)
+  plot(x, ecdf_(x), type = "l", ylab = ylab, xlab = xlab, ...)
+  graphics::lines(x, stats::punif(x), lty = 2)
+  return(invisible(p_value))
+}
