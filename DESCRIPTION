@@ -3,7 +3,7 @@ Type: Package
 Title: Diagnostics for Linear Models
 Version: 0.1.0
 Authors@R:
-    person("Álvaro", "Kothe", , role = c("aut", "cre"),
+    person("Álvaro", "Kothe", email = "kothe65@gmail.com", role = c("aut", "cre"),
     comment = c(ORCID = "0000-0003-2114-3193"))
 Description: Convenience functions to diagnose linear statistical models.
 License: MIT + file LICENSE
