@@ -57,7 +57,7 @@ backward_selection <- function(model, threshold = .15,
     values <- values[explore_remove]
     to_remove <- which.max(values)
 
-    if (values[to_remove] < threshold) {
+    if (length(values) == 0L || values[to_remove] < threshold) {
       break
     }
 
@@ -134,7 +134,7 @@ bidirectional_selection <- function(model, threshold = .15,
 
     to_remove <- which.max(values)
 
-    if (values[to_remove] > threshold) {
+    if (length(values) > 0 && values[to_remove] > threshold) {
       removed_var <- names(to_remove)
       next_formula <- remove_variable(removed_var)
 
@@ -167,7 +167,7 @@ bidirectional_selection <- function(model, threshold = .15,
 
     to_add <- which.min(values)
 
-    if (values[to_add] <= threshold) {
+    if (length(values) > 0 && values[to_add] <= threshold) {
       added_var <- names(to_add)
       next_formula <- add_variable(added_var)
 
