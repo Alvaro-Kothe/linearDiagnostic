@@ -1,7 +1,9 @@
 ^.*\.Rproj$
 ^LICENSE\.md$
+^Makefile$
 ^\.Rproj\.user$
 ^\.lintr$
 ^\.pre-commit-config\.yaml$
+^\.vscode$
 ^renv$
 ^renv\.lock$

@@ -43,12 +43,13 @@ get_p_value <- function(model) {
 #' backward_selection(model)
 backward_selection <- function(model, threshold = .15,
                                measure_fn = get_p_value,
-                               data = stats::model.frame(model),
+                               data = NULL,
                                max_steps = 1000,
                                return_step_results = FALSE,
                                do_not_remove = c("(Intercept)")) {
   log_ <- list()
   cur_step <- 0
+  if (is.null(data)) data <- stats::model.frame(model)
 
   while (cur_step < max_steps) {
     cur_step <- cur_step + 1
@@ -104,16 +105,16 @@ backward_selection <- function(model, threshold = .15,
 bidirectional_selection <- function(model, threshold = .15,
                                     addable_coefs = NULL,
                                     measure_fn = get_p_value,
-                                    data = stats::model.frame(model),
+                                    data = NULL,
                                     max_steps = 1000,
                                     return_step_results = FALSE,
                                     do_not_remove = c("(Intercept)")) {
   log_ <- list()
   cur_step <- 0
-  seen_states <- list(names(coef(model)))
-  if (is.null(addable_coefs)) addable_coefs <- names(coef(model))
+  seen_states <- list(names(stats::coef(model)))
+  if (is.null(addable_coefs)) addable_coefs <- names(stats::coef(model))
 
-  if (is.null(data)) data <- model.frame(model)
+  if (is.null(data)) data <- stats::model.frame(model)
   while (cur_step < max_steps) {
     cur_step <- cur_step + 1
 
@@ -121,7 +122,7 @@ bidirectional_selection <- function(model, threshold = .15,
     values <- measure_fn(model)
 
     possible_next_states <- lapply(names(values), function(x) {
-      names(coef(model))[names(coef(model)) != x]
+      names(stats::coef(model))[names(stats::coef(model)) != x]
     })
     next_state_seen <- sapply(
       possible_next_states,
@@ -138,9 +139,9 @@ bidirectional_selection <- function(model, threshold = .15,
       removed_var <- names(to_remove)
       next_formula <- remove_variable(removed_var)
 
-      model <- update(model, formula. = next_formula, data = data)
+      model <- stats::update(model, formula. = next_formula, data = data)
 
-      seen_states <- append(seen_states, list(names(coef(model))))
+      seen_states <- append(seen_states, list(names(stats::coef(model))))
       log_[[cur_step]] <- list(
         step = cur_step, operation = "removal",
         variable = removed_var, value = values[to_remove]
@@ -149,8 +150,8 @@ bidirectional_selection <- function(model, threshold = .15,
     }
 
     # 2. Forward selection
-    add_candidates <- setdiff(addable_coefs, names(coef(model)))
-    possible_next_states <- lapply(add_candidates, c, names(coef(model)))
+    add_candidates <- setdiff(addable_coefs, names(stats::coef(model)))
+    possible_next_states <- lapply(add_candidates, c, names(stats::coef(model)))
     next_state_seen <- sapply(
       possible_next_states,
       function(x) any(sapply(seen_states, setequal, x))
@@ -160,7 +161,7 @@ bidirectional_selection <- function(model, threshold = .15,
     values <- sapply(add_candidates, function(add_cand) {
       next_formula <- add_variable(add_cand)
 
-      next_fit <- update(model, formula. = next_formula, data = data)
+      next_fit <- stats::update(model, formula. = next_formula, data = data)
 
       measure_fn(next_fit)[[add_cand]]
     })
@@ -171,9 +172,9 @@ bidirectional_selection <- function(model, threshold = .15,
       added_var <- names(to_add)
       next_formula <- add_variable(added_var)
 
-      model <- update(model, formula. = next_formula, data = data)
+      model <- stats::update(model, formula. = next_formula, data = data)
 
-      seen_states <- append(seen_states, list(names(coef(model))))
+      seen_states <- append(seen_states, list(names(stats::coef(model))))
       log_[[cur_step]] <- list(
         step = cur_step, operation = "addition",
         variable = added_var, value = values[to_add]

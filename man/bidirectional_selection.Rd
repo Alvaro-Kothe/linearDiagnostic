@@ -9,7 +9,7 @@ bidirectional_selection(
   threshold = 0.15,
   addable_coefs = NULL,
   measure_fn = get_p_value,
-  data = stats::model.frame(model),
+  data = NULL,
   max_steps = 1000,
   return_step_results = FALSE,
   do_not_remove = c("(Intercept)")
