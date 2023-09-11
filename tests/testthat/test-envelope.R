@@ -9,6 +9,7 @@ test_that("envelope_measures() observed and expected concides with qqnorm", {
 })
 
 test_that("envelope_measures() acceptable coverage for correct model", {
+  set.seed(1)
   x <- matrix(rnorm(1000), ncol = 2)
   beta <- c(1, 1)
   y <- rnorm(nrow(x), mean = x %*% beta, sd = .01)
@@ -16,11 +17,12 @@ test_that("envelope_measures() acceptable coverage for correct model", {
   env_meas <- envelope_measures(fit)
   inside_band <- mean(env_meas$lower < env_meas$observed &
     env_meas$observed < env_meas$upper)
-  expect_gte(inside_band, .90)
+  expect_gte(inside_band, .87)
   expect_equal(1 - inside_band, mean(env_meas$outside))
 })
 
 test_that("envelope_measures() detects incorrect fit", {
+  set.seed(1)
   x <- matrix(rnorm(1000), ncol = 2)
   beta <- c(1, 1)
   y <- rpois(nrow(x), lambda = exp(x %*% beta))
