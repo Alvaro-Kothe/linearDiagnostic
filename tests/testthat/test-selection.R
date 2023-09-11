@@ -19,6 +19,26 @@ test_that("backward_selection() removes Intercept", {
   expect_false("(Intercept)" %in% names(coef(selection)))
 })
 
+test_that("backward_selection() keeps covariates from `do_not_remove`", {
+  fit <- lm(mpg ~ ., data = mtcars)
+  keep <- c("(Intercept)", "cyl", "am")
+  selection <- backward_selection(fit,
+    data = mtcars,
+    do_not_remove = keep
+  )
+  expect_in(keep, names(coef(selection)))
+})
+
+test_that("bidirectional_selection() keeps covariates from `do_not_remove`", {
+  fit <- lm(mpg ~ ., data = mtcars)
+  keep <- c("(Intercept)", "cyl", "am")
+  selection <- bidirectional_selection(fit,
+    data = mtcars,
+    do_not_remove = keep
+  )
+  expect_in(keep, names(coef(selection)))
+})
+
 test_that("bidirectional_selection() add covariates", {
   fit <- lm(mpg ~ 1, data = mtcars)
   selection <- bidirectional_selection(fit,
