@@ -15,8 +15,7 @@ test_that("envelope_measures() acceptable coverage for correct model", {
   y <- rnorm(nrow(x), mean = x %*% beta, sd = .01)
   fit <- lm(y ~ x + 0)
   env_meas <- envelope_measures(fit)
-  inside_band <- mean(env_meas$lower < env_meas$observed &
-    env_meas$observed < env_meas$upper)
+  inside_band <- mean(env_meas$lower < env_meas$observed & env_meas$observed < env_meas$upper)
   expect_gte(inside_band, .87)
   expect_equal(1 - inside_band, mean(env_meas$outside))
 })
