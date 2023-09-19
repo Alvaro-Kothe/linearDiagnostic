@@ -62,3 +62,12 @@ test_that("bidirectional_selection() removes Intercept", {
   selection <- bidirectional_selection(fit, do_not_remove = NULL)
   expect_false("(Intercept)" %in% names(coef(selection)))
 })
+
+test_that("return_step_results works", {
+  set.seed(1)
+  x <- c(1, 2, 5, 2, 3, 4)
+  y <- 2 * x + runif(length(x), .01)
+  fit <- lm(y ~ x)
+  expect_no_error(bidirectional_selection(fit, return_step_results = TRUE)$log)
+  expect_no_error(backward_selection(fit, return_step_results = TRUE)$log)
+})
