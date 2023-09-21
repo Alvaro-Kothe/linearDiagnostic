@@ -79,6 +79,24 @@ test_that("Likelihood ratio test works for selection", {
   ))
 })
 
+test_that("Likelihood ratio test works for forward selection", {
+  fit <- lm(mpg ~ 1, data = mtcars)
+
+  lrt <- function(model1, model2) {
+    lrt_stat <- 2 * (logLik(model1)[1L] - logLik(model2)[1L])
+    return(1 - pchisq(lrt_stat, 1))
+  }
+
+  selection <- select_covariates(fit,
+    measure_fn = lrt,
+    direction = "forward",
+    addable_coefs = setdiff(colnames(mtcars), "mpg"),
+    data = mtcars
+  )
+
+  expect_gt(length(coef(selection)), 1)
+})
+
 test_that("return_step_results works", {
   set.seed(1)
   x <- c(1, 2, 5, 2, 3, 4)
