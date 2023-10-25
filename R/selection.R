@@ -16,10 +16,6 @@ add_variable <- function(x) {
   return(out)
 }
 
-get_p_value <- function(model) {
-  return(summary(model)[["coefficients"]][, 4])
-}
-
 #' Select covariates backwise
 #'
 #' @param model A model with [stats::update()] method.
@@ -42,7 +38,7 @@ get_p_value <- function(model) {
 #' model <- lm(mpg ~ ., data = mtcars)
 #' backward_selection(model)
 backward_selection <- function(model, threshold = .15,
-                               measure_fn = get_p_value,
+                               measure_fn = function(x) summary(x)[["coefficients"]][, 4],
                                data = NULL,
                                max_steps = 1000,
                                return_step_results = FALSE,
@@ -93,7 +89,7 @@ backward_selection <- function(model, threshold = .15,
 #' select_covariates(fit, measure_fn = lrt)
 bidirectional_selection <- function(model, threshold = .15,
                                     addable_coefs = NULL,
-                                    measure_fn = get_p_value,
+                                    measure_fn = function(x) summary(x)[["coefficients"]][, 4],
                                     data = NULL,
                                     max_steps = 1000,
                                     return_step_results = FALSE,
@@ -247,7 +243,7 @@ select_covariates <- function(model,
                               threshold = .15,
                               direction = "both",
                               addable_coefs = names(stats::coef(model)),
-                              measure_fn = get_p_value,
+                              measure_fn = function(x) summary(x)[["coefficients"]][, 4],
                               data = NULL,
                               max_steps = 1000,
                               return_step_results = FALSE,
