@@ -1,5 +1,8 @@
 RSCRIPT ?= Rscript
 
+check:
+	$(RSCRIPT) -e 'devtools::check()'
+
 test:
 	$(RSCRIPT) -e 'devtools::test()'
 
