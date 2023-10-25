@@ -8,7 +8,7 @@ bidirectional_selection(
   model,
   threshold = 0.15,
   addable_coefs = NULL,
-  measure_fn = get_p_value,
+  measure_fn = function(x) summary(x)[["coefficients"]][, 4],
   data = NULL,
   max_steps = 1000,
   return_step_results = FALSE,

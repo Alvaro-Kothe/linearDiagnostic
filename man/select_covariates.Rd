@@ -9,7 +9,8 @@ select_covariates(
   threshold = 0.15,
   direction = "both",
   addable_coefs = names(stats::coef(model)),
-  measure_fn = get_p_value,
+  measure_fn = function(x) summary(x)[["coefficients"]][, 4],
+  measure_one_at_time = FALSE,
   data = NULL,
   max_steps = 1000,
   return_step_results = FALSE,
@@ -20,7 +21,8 @@ select_covariates(
 \item{model}{A model with [stats::update()] method.}
 
 \item{threshold}{Value threshold to remove variable. where the variable is
-removed if `measure_fn(model) > threshold`, added if `measure_fn(model) <= threshold`}
+removed if `measure_fn(model) > threshold`, added if `measure_fn(model) <= threshold`.
+It can also be a function that evaluates on the current fitted model.}
 
 \item{direction}{Selection method, being both(forward and backward), forward and backward.
 default is "both"}
@@ -31,6 +33,10 @@ default is "both"}
 `threshold`. It can also compare two models, where during forward step
 it calls `measure_fn(candidate_model, current_selected_model)` and
 during backward step it calls `measure_fn(current_selected_model, candidate_model)`.}
+
+\item{measure_one_at_time}{Boolean indicating to apply `measure_fn` in one model at a time.
+Set this option to `TRUE` if `measure_fn` returns an atomic value, for example if
+`measure_fn` is `AIC`.}
 
 \item{data}{Data to be used for model refit.}
 
@@ -54,12 +60,32 @@ model <- lm(mpg ~ ., data = mtcars)
 select_covariates(model)
 
 ## measure_fn with two parameters
-fit <- lm(mpg ~ ., data = mtcars)
 
 lrt <- function(model1, model2) {
   lrt_stat <- 2 * (logLik(model1)[1L] - logLik(model2)[1L])
   return(1 - pchisq(lrt_stat, 1))
 }
 
-select_covariates(fit, measure_fn = lrt)
+select_covariates(model, measure_fn = lrt)
+
+## AICc selection
+
+neg_AICc <- function(model) {
+  loglike <- logLik(model)
+  df <- attr(loglike, "df")
+  nobs <- attr(loglike, "nobs")
+  aic <- -2 * as.numeric(loglike) + 2 * df
+
+  aicc <- aic + (2 * (df^2) + 2 * df) / (nobs - df - 1)
+
+  return(-aicc)
+}
+
+selection <- select_covariates(model,
+  measure_fn = neg_AICc,
+  threshold = neg_AICc,
+  measure_one_at_time = TRUE,
+  direction = "both",
+  data = mtcars
+)
 }

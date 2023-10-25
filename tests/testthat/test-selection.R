@@ -97,6 +97,22 @@ test_that("Likelihood ratio test works for forward selection", {
   expect_gt(length(coef(selection)), 1)
 })
 
+test_that("Selection works with AIC", {
+  fit <- lm(mpg ~ ., data = mtcars)
+
+  selection <- select_covariates(fit,
+    measure_fn = function(model) -stats::extractAIC(model)[2L],
+    threshold = function(model) -stats::extractAIC(model)[2L],
+    measure_one_at_time = TRUE,
+    direction = "both",
+    data = mtcars
+  )
+
+  selection_step_aic <- step(fit, trace = 0)
+
+  expect_equal(coef(selection), coef(selection_step_aic))
+})
+
 test_that("return_step_results works", {
   set.seed(1)
   x <- c(1, 2, 5, 2, 3, 4)

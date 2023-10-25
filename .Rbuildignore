@@ -1,6 +1,7 @@
 ^.*\.Rproj$
 ^LICENSE\.md$
 ^Makefile$
+^\.Rprofile$
 ^\.Rproj\.user$
 ^\.github$
 ^\.lintr$
