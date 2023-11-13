@@ -57,8 +57,30 @@ test_that("plot_*_pvalues_ecdf work", {
   y <- c(2, 3, 6, 9)
   fit <- lm(y ~ x)
 
+  set.seed(1)
   expect_no_error(plot_joint_pvalues_ecdf(fit))
   expect_no_error(plot_pvalues_ecdf(fit))
   expect_no_error(plot_pvalues_ecdf(fit, ask = TRUE))
   expect_no_error(plot_pvalues_ecdf(fit, ask = FALSE))
+})
+
+test_that("plot_*_pvalues throw warning with singular matrix", {
+  params <- c(1, .2, .5, -.2, -.5, 0, 0.1, 0.01, 3, 5)
+  set.seed(1)
+  model_matrix <- matrix(rnorm(13 * 10),
+    nrow = 13,
+    ncol = 10
+  )
+  eta <- model_matrix %*% params
+  mu <- exp(eta)
+  y <- rpois(13, mu)
+
+  suppressWarnings({
+    fit <- glm(y ~ model_matrix + 1, family = poisson())
+
+    expect_warning(
+      plot_joint_pvalues_ecdf(fit, n_sim = 10),
+      "Cant inverse vcov from simulation \\d+ using ginv instead"
+    )
+  })
 })
