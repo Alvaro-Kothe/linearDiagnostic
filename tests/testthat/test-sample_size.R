@@ -51,3 +51,14 @@ test_that("simulate_coefficients() with generator yield different results", {
 
   expect_false(identical(simulation_result1, simulation_result2))
 })
+
+test_that("plot_*_pvalues_ecdf work", {
+  x <- c(1, 3, 5, 7)
+  y <- c(2, 3, 6, 9)
+  fit <- lm(y ~ x)
+
+  expect_no_error(plot_joint_pvalues_ecdf(fit))
+  expect_no_error(plot_pvalues_ecdf(fit))
+  expect_no_error(plot_pvalues_ecdf(fit, ask = TRUE))
+  expect_no_error(plot_pvalues_ecdf(fit, ask = FALSE))
+})
