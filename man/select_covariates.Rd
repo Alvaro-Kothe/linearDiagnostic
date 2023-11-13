@@ -11,6 +11,7 @@ select_covariates(
   addable_coefs = names(stats::coef(model)),
   measure_fn = function(x) summary(x)[["coefficients"]][, 4],
   measure_one_at_time = FALSE,
+  minimize_only = FALSE,
   data = NULL,
   max_steps = 1000,
   return_step_results = FALSE,
@@ -37,6 +38,9 @@ during backward step it calls `measure_fn(current_selected_model, candidate_mode
 \item{measure_one_at_time}{Boolean indicating to apply `measure_fn` in one model at a time.
 Set this option to `TRUE` if `measure_fn` returns an atomic value, for example if
 `measure_fn` is `AIC`.}
+
+\item{minimize_only}{Boolean indicating that during backward model update
+it should minimize the `measure_fn` instead of maximize it.}
 
 \item{data}{Data to be used for model refit.}
 
@@ -70,7 +74,7 @@ select_covariates(model, measure_fn = lrt)
 
 ## AICc selection
 
-neg_AICc <- function(model) {
+AICc <- function(model) {
   loglike <- logLik(model)
   df <- attr(loglike, "df")
   nobs <- attr(loglike, "nobs")
@@ -78,13 +82,14 @@ neg_AICc <- function(model) {
 
   aicc <- aic + (2 * (df^2) + 2 * df) / (nobs - df - 1)
 
-  return(-aicc)
+  return(aicc)
 }
 
 selection <- select_covariates(model,
-  measure_fn = neg_AICc,
-  threshold = neg_AICc,
+  measure_fn = AICc,
+  threshold = AICc,
   measure_one_at_time = TRUE,
+  minimize_only = TRUE,
   direction = "both",
   data = mtcars
 )
