@@ -48,9 +48,9 @@ simulate_coefficients <- function(model, generator = NULL, n_sim = 100) {
   return(list(coefs = coefs, vcov = variances))
 }
 
-compute_p_values <- function(simulation_coefs, simulation_vcov, model) {
+compute_p_values <- function(simulation_coefs, simulation_vcov, generator_coef) {
   standard_coef <- sapply(seq_along(simulation_coefs), function(i) {
-    (simulation_coefs[[i]] - stats::coef(model)) / sqrt(diag(simulation_vcov[[i]]))
+    (simulation_coefs[[i]] - generator_coef) / sqrt(diag(simulation_vcov[[i]]))
   })
   colnames(standard_coef) <- names(simulation_coefs)
 
@@ -59,14 +59,21 @@ compute_p_values <- function(simulation_coefs, simulation_vcov, model) {
   return(p_values)
 }
 
-compute_p_values_joint <- function(simulation_coefs, simulation_vcov, model) {
+compute_p_values_joint <- function(simulation_coefs, simulation_vcov, generator_coef) {
   chisq_stat <- sapply(seq_along(simulation_coefs), function(i) {
-    t(simulation_coefs[[i]] - stats::coef(model)) %*%
-      solve(simulation_vcov[[i]]) %*%
-      (simulation_coefs[[i]] - stats::coef(model))
+    vcov_inv <- tryCatch(solve(simulation_vcov[[i]]),
+      error = function(e) {
+        warning("Cant inverse vcov from simulation ", i, " using ginv instead\n")
+        MASS::ginv(simulation_vcov[[i]])
+      }
+    )
+    dif_nul <- simulation_coefs[[i]] - generator_coef
+    t(dif_nul) %*%
+      vcov_inv %*%
+      dif_nul
   })
 
-  p_values <- 1 - stats::pchisq(chisq_stat, length(stats::coef(model)))
+  p_values <- 1 - stats::pchisq(chisq_stat, length(generator_coef))
 
   return(p_values)
 }
@@ -103,7 +110,7 @@ plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
   p_values <- compute_p_values(
     simulation_coefs = simulation$coefs,
     simulation_vcov = simulation$vcov,
-    model = model
+    generator_coef = stats::coef(model)
   )
   for (i in which) {
     p_value <- p_values[i, ]
@@ -137,7 +144,7 @@ plot_joint_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
   p_value <- compute_p_values_joint(
     simulation_coefs = simulation$coefs,
     simulation_vcov = simulation$vcov,
-    model = model
+    generator_coef = stats::coef(model)
   )
   ecdf_ <- stats::ecdf(p_value)
   x <- seq(0, 1, length.out = 201)
