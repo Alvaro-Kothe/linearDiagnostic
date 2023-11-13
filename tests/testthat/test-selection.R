@@ -101,14 +101,38 @@ test_that("Selection works with AIC", {
   fit <- lm(mpg ~ ., data = mtcars)
 
   selection <- select_covariates(fit,
-    measure_fn = function(model) -stats::extractAIC(model)[2L],
-    threshold = function(model) -stats::extractAIC(model)[2L],
+    measure_fn = function(model) stats::extractAIC(model)[2L],
+    threshold = function(model) stats::extractAIC(model)[2L],
     measure_one_at_time = TRUE,
     direction = "both",
+    minimize_only = TRUE,
     data = mtcars
   )
 
   selection_step_aic <- step(fit, trace = 0)
+
+  expect_equal(coef(selection), coef(selection_step_aic))
+})
+
+test_that("Selection works with AIC start from intercept", {
+  fit <- lm(mpg ~ 1, data = mtcars)
+  upper_scope <- ~ cyl + disp + hp + drat + wt + qsec + vs + am + gear + carb
+
+  selection <- select_covariates(fit,
+    measure_fn = function(model) stats::extractAIC(model)[2L],
+    threshold = function(model) stats::extractAIC(model)[2L],
+    addable_coefs = setdiff(colnames(mtcars), "mpg"),
+    measure_one_at_time = TRUE,
+    direction = "both",
+    minimize_only = TRUE,
+    data = mtcars
+  )
+
+  selection_step_aic <- step(
+    fit,
+    scope = list(upper = upper_scope, lower = ~1),
+    trace = 0
+  )
 
   expect_equal(coef(selection), coef(selection_step_aic))
 })

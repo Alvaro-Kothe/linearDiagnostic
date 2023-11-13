@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-      RENV_CONFIG_AUTOLOADER_ENABLED: false # Hack to use pak in gh action
     steps:
       - uses: actions/checkout@v3
 
