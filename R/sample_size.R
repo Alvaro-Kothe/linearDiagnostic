@@ -115,7 +115,7 @@ plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
   for (i in which) {
     p_value <- p_values[i, ]
     ecdf_ <- stats::ecdf(p_value)
-    x <- seq(0, 1, length.out = 201)
+    x <- seq(-0.01, 1.01, length.out = 201)
     plot(x, ecdf_(x), type = "l", main = caption[i], ylab = ylab, xlab = xlab, ...)
     graphics::lines(x, stats::punif(x), lty = 2)
   }
@@ -147,7 +147,7 @@ plot_joint_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
     generator_coef = stats::coef(model)
   )
   ecdf_ <- stats::ecdf(p_value)
-  x <- seq(0, 1, length.out = 201)
+  x <- seq(-0.01, 1.01, length.out = 201)
   plot(x, ecdf_(x), type = "l", ylab = ylab, xlab = xlab, ...)
   graphics::lines(x, stats::punif(x), lty = 2)
   return(invisible(p_value))
