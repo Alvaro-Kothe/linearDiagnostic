@@ -13,7 +13,8 @@ plot_pvalues_ecdf(
   ylab = "Fn(x)",
   xlab = "x",
   ...,
-  ask = prod(graphics::par("mfcol")) < length(which) && grDevices::dev.interactive()
+  ask = prod(graphics::par("mfcol")) < length(which) && grDevices::dev.interactive(),
+  use_tstat = NULL
 )
 }
 \arguments{
@@ -34,6 +35,9 @@ plot_pvalues_ecdf(
 \item{...}{Extra arguments from [plot()]}
 
 \item{ask}{Logical, ask to show next plot}
+
+\item{use_tstat}{Logical, Should use t-test using model df.residual.
+If `NULL` look at the model summary to decide.}
 }
 \value{
 Matrix with p_values obtained from the simulations.
