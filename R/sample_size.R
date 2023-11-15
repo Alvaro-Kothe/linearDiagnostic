@@ -48,13 +48,21 @@ simulate_coefficients <- function(model, generator = NULL, n_sim = 100) {
   return(list(coefs = coefs, vcov = variances))
 }
 
-compute_p_values <- function(simulation_coefs, simulation_vcov, generator_coef) {
+compute_statistic <- function(simulation_coefs, simulation_vcov, generator_coef) {
   standard_coef <- sapply(seq_along(simulation_coefs), function(i) {
     (simulation_coefs[[i]] - generator_coef) / sqrt(diag(simulation_vcov[[i]]))
   })
   colnames(standard_coef) <- names(simulation_coefs)
 
-  p_values <- 1 - stats::pchisq(standard_coef^2, 1)
+  return(standard_coef)
+}
+
+compute_p_values <- function(statistic, df = NULL) {
+  if (is.null(df)) {
+    p_values <- 1 - stats::pchisq(statistic^2, 1)
+  } else {
+    p_values <- 2 * stats::pt(abs(statistic), df = df, lower.tail = FALSE)
+  }
 
   return(p_values)
 }
@@ -98,6 +106,8 @@ compute_p_values_joint <- function(simulation_coefs, simulation_vcov, generator_
 #' @param xlab x-axis label
 #' @param ... Extra arguments from [plot()]
 #' @param ask Logical, ask to show next plot
+#' @param use_tstat Logical, Should use t-test using model df.residual.
+#' If `NULL` look at the model summary to decide.
 #'
 #' @return Matrix with p_values obtained from the simulations.
 #' @export
@@ -111,17 +121,24 @@ plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
                               caption = paste("ECDF of", names(stats::coef(model)))[which],
                               plot_uniform = TRUE,
                               ylab = "Empirical cumulative distribution", xlab = "p-value", ...,
-                              ask = prod(graphics::par("mfcol")) < length(which) && grDevices::dev.interactive()) {
+                              ask = prod(graphics::par("mfcol")) < length(which) && grDevices::dev.interactive(),
+                              use_tstat = NULL) {
   if (ask) {
     oask <- grDevices::devAskNewPage(TRUE)
     on.exit(grDevices::devAskNewPage(oask))
   }
   simulation <- simulate_coefficients(model = model, generator = generator, n_sim = n_sim)
-  p_values <- compute_p_values(
+  statistic <- compute_statistic(
     simulation_coefs = simulation$coefs,
     simulation_vcov = simulation$vcov,
     generator_coef = stats::coef(model)
   )
+
+  if (is.null(use_tstat)) {
+    use_tstat <- colnames(summary(model)$coefficients)[3] == "t value"
+  }
+  df_ <- if (use_tstat) model$df.residual else NULL
+  p_values <- compute_p_values(statistic = statistic, df = df_)
   for (i in which) {
     p_value <- p_values[i, ]
     ecdf_ <- stats::ecdf(p_value)
