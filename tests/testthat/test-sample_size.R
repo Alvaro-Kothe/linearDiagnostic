@@ -80,7 +80,7 @@ test_that("plot_*_pvalues throw warning with singular matrix", {
 
     expect_warning(
       plot_joint_pvalues_ecdf(fit, n_sim = 10),
-      "Cant inverse vcov from simulation \\d+ using ginv instead"
+      "Couldn't inverse vcov from \\d+ simulations and used ginv instead"
     )
   })
 })

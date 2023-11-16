@@ -60,10 +60,11 @@ compute_p_values <- function(simulation_coefs, simulation_vcov, generator_coef) 
 }
 
 compute_p_values_joint <- function(simulation_coefs, simulation_vcov, generator_coef) {
+  ginv_uses <- 0
   chisq_stat <- sapply(seq_along(simulation_coefs), function(i) {
     vcov_inv <- tryCatch(solve(simulation_vcov[[i]]),
       error = function(e) {
-        warning("Cant inverse vcov from simulation ", i, " using ginv instead\n")
+        ginv_uses <<- ginv_uses + 1
         MASS::ginv(simulation_vcov[[i]])
       }
     )
@@ -73,6 +74,13 @@ compute_p_values_joint <- function(simulation_coefs, simulation_vcov, generator_
       dif_nul
   })
 
+  if (ginv_uses > 0) {
+    warning(
+      "Couldn't inverse vcov from ",
+      ginv_uses,
+      " simulations and used ginv instead\n"
+    )
+  }
   p_values <- 1 - stats::pchisq(chisq_stat, length(generator_coef))
 
   return(p_values)
