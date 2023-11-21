@@ -25,7 +25,6 @@ simulate_coefficients <- function(model, generator = NULL, n_sim = 100) {
     )
     names(y_star) <- paste0("sim_", seq_along(y_star))
   }
-  model_frame <- stats::model.frame(model)
 
   coefs <- list()
   variances <- list()
@@ -37,7 +36,7 @@ simulate_coefficients <- function(model, generator = NULL, n_sim = 100) {
       paste(enquote(y_)[2], "~.", collapse = "")
     )
 
-    refit <- stats::update(model, formula. = formula_new_response, data = model_frame)
+    refit <- stats::update(model, formula. = formula_new_response)
 
     coefs[[i]] <- stats::coef(refit)
     variances[[i]] <- stats::vcov(refit)
