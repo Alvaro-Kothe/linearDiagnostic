@@ -88,3 +88,83 @@ test_that("plot_*_pvalues throw warning with singular matrix", {
     )
   })
 })
+
+test_that("simulate_coefficients() works with poisson with offset", {
+  n <- 5
+  offset_ <- rpois(n, 10000)
+  x <- runif(n)
+  y <- rpois(n, exp(1 + 2 * x))
+
+  suppressWarnings({
+    fit <- glm(y ~ x + offset(offset_), family = poisson())
+    sim <- simulate_coefficients(fit, n_sim = 1)
+  })
+
+  expect_length(sim$coefs[[1]], 2)
+})
+
+
+test_that("simulate_coefficients() with custom method works", {
+  foo <- function(formula, data) {
+    model_frame <- model.frame(formula, data = data)
+    y <- model.response(model_frame, type = "numeric")
+    x <- model.matrix(formula, data)
+    xtx <- crossprod(x)
+    xtxinv <- solve(xtx)
+
+    out <- list()
+    out$coef <- c(xtxinv %*% t(x) %*% y)
+    out$fitted.values <- c(x %*% out$coef)
+    out$sigma <- sum((y - out$fitted.values)^2) / (length(y) - length(out$coef))
+    out$x <- x
+    out$y <- y
+    out$data <- data
+    out$model_frame <- model_frame
+    out$vcov <- out$sigma * xtxinv
+
+    class(out) <- "foo"
+
+    return(out)
+  }
+
+  # nolint start: object_name_linter
+  simulate.foo <- function(object, nsim = 1, seed = NULL, ...) {
+    mu <- object$fitted.values
+
+    replicate(nsim, rep(NA, length(mu)), simplify = FALSE)
+  }
+  assign("simulate.foo", simulate.foo, envir = .GlobalEnv)
+
+  update.foo <- function(object, ...) {
+    object
+  }
+  assign("update.foo", update.foo, envir = .GlobalEnv)
+
+  vcov.foo <- function(object) {
+    matrix(NA, nrow = 2, ncol = 2)
+  }
+  assign("vcov.foo", vcov.foo, envir = .GlobalEnv)
+
+  coef.foo <- function(object) {
+    rep_len(NA, 2)
+  }
+  assign("coef.foo", coef.foo, envir = .GlobalEnv)
+  # nolint end
+
+
+  fit <- foo(mpg ~ cyl, mtcars)
+
+  sim <- simulate_coefficients(fit, n_sim = 2)
+
+  expect_identical(sim$coefs, list(c(NA, NA), c(NA, NA)))
+
+  expect_identical(sim$vcov, list(
+    matrix(NA, nrow = 2, ncol = 2),
+    matrix(NA, nrow = 2, ncol = 2)
+  ))
+
+  rm(
+    list = c("simulate.foo", "update.foo", "vcov.foo", "coef.foo"),
+    envir = .GlobalEnv
+  )
+})
