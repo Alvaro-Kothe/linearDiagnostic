@@ -11,6 +11,7 @@ plot_joint_pvalues_ecdf(
   plot_uniform = TRUE,
   ylab = "Empirical cumulative distribution",
   xlab = "p-value",
+  args_sim = list(),
   ...
 )
 }
@@ -26,6 +27,8 @@ plot_joint_pvalues_ecdf(
 \item{ylab}{y-axis label}
 
 \item{xlab}{x-axis label}
+
+\item{args_sim}{Extra arguments passed to [simulate_coefficients()].}
 
 \item{...}{Extra arguments from [plot()]}
 }
