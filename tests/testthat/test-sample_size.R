@@ -62,6 +62,10 @@ test_that("plot_*_pvalues_ecdf work", {
   expect_no_error(plot_pvalues_ecdf(fit))
   expect_no_error(plot_pvalues_ecdf(fit, ask = TRUE))
   expect_no_error(plot_pvalues_ecdf(fit, ask = FALSE))
+  expect_no_error(plot_joint_pvalues_ecdf(fit, plot_uniform = TRUE))
+  expect_no_error(plot_joint_pvalues_ecdf(fit, plot_uniform = FALSE))
+  expect_no_error(plot_pvalues_ecdf(fit, plot_uniform = TRUE))
+  expect_no_error(plot_pvalues_ecdf(fit, plot_uniform = FALSE))
 })
 
 test_that("plot_*_pvalues throw warning with singular matrix", {

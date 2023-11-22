@@ -93,6 +93,7 @@ compute_p_values_joint <- function(simulation_coefs, simulation_vcov, generator_
 #' @param n_sim Number of simulations.
 #' @param which vector of integers with model coefficients indices to plot.
 #' @param caption Plot title for each coefficient.
+#' @param plot_uniform Boolean to plot uniform distribution.
 #' @param ylab y-axis label
 #' @param xlab x-axis label
 #' @param ... Extra arguments from [plot()]
@@ -108,7 +109,8 @@ compute_p_values_joint <- function(simulation_coefs, simulation_vcov, generator_
 plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
                               which = seq_along(stats::coef(model)),
                               caption = paste("ECDF of", names(stats::coef(model)))[which],
-                              ylab = "Fn(x)", xlab = "x", ...,
+                              plot_uniform = TRUE,
+                              ylab = "Empirical cumulative distribution", xlab = "p-value", ...,
                               ask = prod(graphics::par("mfcol")) < length(which) && grDevices::dev.interactive()) {
   if (ask) {
     oask <- grDevices::devAskNewPage(TRUE)
@@ -125,7 +127,14 @@ plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
     ecdf_ <- stats::ecdf(p_value)
     x <- seq(-0.01, 1.01, length.out = 201)
     plot(x, ecdf_(x), type = "l", main = caption[i], ylab = ylab, xlab = xlab, ...)
-    graphics::lines(x, stats::punif(x), lty = 2)
+    if (plot_uniform) {
+      graphics::lines(x, stats::punif(x), lty = 2, col = "gray30")
+      graphics::legend("topleft",
+        legend = c("p-value", "U(0, 1)"),
+        lty = c(1, 2),
+        col = c("black", "gray30")
+      )
+    }
   }
   return(invisible(p_values))
 }
@@ -135,6 +144,7 @@ plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
 #' @param model A model with [update()] method.
 #' @param generator Optional custom generator function with 2 arguments (n, mu).
 #' @param n_sim Number of simulations.
+#' @param plot_uniform Boolean to plot uniform distribution.
 #' @param ylab y-axis label
 #' @param xlab x-axis label
 #' @param ... Extra arguments from [plot()]
@@ -146,8 +156,11 @@ plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
 #' fit <- lm(mpg ~ cyl, data = mtcars)
 #'
 #' plot_joint_pvalues_ecdf(fit)
-plot_joint_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
-                                    ylab = "Fn(x)", xlab = "x", ...) {
+plot_joint_pvalues_ecdf <- function(model,
+                                    generator = NULL, n_sim = 1000,
+                                    plot_uniform = TRUE,
+                                    ylab = "Empirical cumulative distribution", xlab = "p-value",
+                                    ...) {
   simulation <- simulate_coefficients(model = model, generator = generator, n_sim = n_sim)
   p_value <- compute_p_values_joint(
     simulation_coefs = simulation$coefs,
@@ -157,6 +170,13 @@ plot_joint_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
   ecdf_ <- stats::ecdf(p_value)
   x <- seq(-0.01, 1.01, length.out = 201)
   plot(x, ecdf_(x), type = "l", ylab = ylab, xlab = xlab, ...)
-  graphics::lines(x, stats::punif(x), lty = 2)
+  if (plot_uniform) {
+    graphics::lines(x, stats::punif(x), lty = 2, col = "gray30")
+    graphics::legend("topleft",
+      legend = c("p-value", "U(0, 1)"),
+      lty = c(1, 2),
+      col = c("black", "gray30")
+    )
+  }
   return(invisible(p_value))
 }

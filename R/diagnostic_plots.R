@@ -6,6 +6,7 @@
 #' above the Cook's distances mean.
 #' @param xlab x-axis label
 #' @param ylab y-axis label
+#' @param ... Further arguments for [graphics::plot()]
 #'
 #' @return Cook's distances invisible
 #' @export
@@ -16,13 +17,20 @@
 #' plot_cook(fit)
 #' plot_cook(fit, n_highlights = 2)
 plot_cook <- function(model, n_highlights = 0, cut = FALSE,
-                      xlab = "Index", ylab = "Cook's distance") {
+                      xlab = "Index", ylab = "Cook's distance", ...) {
   cook <- stats::cooks.distance(model)
+  ylim <- grDevices::extendrange(cook)
 
-  plot(seq_along(cook), cook, pch = 20, xlab = xlab, ylab = ylab)
+  plot(seq_along(cook), cook,
+    pch = 20, xlab = xlab, ylab = ylab, ylim = ylim,
+    ...
+  )
   if (n_highlights > 0) {
     highests <- order(cook, decreasing = TRUE)[seq_len(n_highlights)]
-    graphics::text(x = highests, y = cook[highests], label = highests)
+    graphics::text(
+      x = highests, y = cook[highests], label = highests,
+      pos = 3
+    )
   }
   if (cut) {
     graphics::abline(h = base::mean(cook) + 4 * stats::sd(cook))

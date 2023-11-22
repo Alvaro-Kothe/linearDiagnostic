@@ -8,8 +8,9 @@ plot_joint_pvalues_ecdf(
   model,
   generator = NULL,
   n_sim = 1000,
-  ylab = "Fn(x)",
-  xlab = "x",
+  plot_uniform = TRUE,
+  ylab = "Empirical cumulative distribution",
+  xlab = "p-value",
   ...
 )
 }
@@ -19,6 +20,8 @@ plot_joint_pvalues_ecdf(
 \item{generator}{Optional custom generator function with 2 arguments (n, mu).}
 
 \item{n_sim}{Number of simulations.}
+
+\item{plot_uniform}{Boolean to plot uniform distribution.}
 
 \item{ylab}{y-axis label}
 

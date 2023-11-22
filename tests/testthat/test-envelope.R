@@ -30,3 +30,7 @@ test_that("envelope_measures() detects incorrect fit", {
   outside_band <- mean(env_meas$outside)
   expect_gt(outside_band, .5)
 })
+
+test_that("plot_envelope() runs without errors", {
+  expect_no_error(plot_envelope(lm(c(1, 5) ~ 1)))
+})

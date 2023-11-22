@@ -9,7 +9,8 @@ plot_cook(
   n_highlights = 0,
   cut = FALSE,
   xlab = "Index",
-  ylab = "Cook's distance"
+  ylab = "Cook's distance",
+  ...
 )
 }
 \arguments{
@@ -23,6 +24,8 @@ above the Cook's distances mean.}
 \item{xlab}{x-axis label}
 
 \item{ylab}{y-axis label}
+
+\item{...}{Further arguments for [graphics::plot()]}
 }
 \value{
 Cook's distances invisible
