@@ -3,6 +3,7 @@
 #' @param model A model with [update()] method
 #' @param generator Optional custom generator function with 2 arguments (n, mu)
 #' @param n_sim Number of simulations
+#' @param ... Extra arguments to [stats::update()]
 #'
 #' @return A list with a list for coefficients and a list with vcov, each of length n_sim
 #' @export
@@ -14,7 +15,7 @@
 #'
 #' simulate_coefficients(fit, generator = generator)
 #'
-simulate_coefficients <- function(model, generator = NULL, n_sim = 100) {
+simulate_coefficients <- function(model, generator = NULL, n_sim = 100, ...) {
   if (is.null(generator)) {
     y_star <- stats::simulate(model, n_sim)
   } else {
@@ -36,7 +37,7 @@ simulate_coefficients <- function(model, generator = NULL, n_sim = 100) {
       paste(enquote(y_)[2], "~.", collapse = "")
     )
 
-    refit <- stats::update(model, formula. = formula_new_response)
+    refit <- stats::update(model, formula. = formula_new_response, ...)
 
     coefs[[i]] <- stats::coef(refit)
     variances[[i]] <- stats::vcov(refit)
@@ -103,6 +104,7 @@ compute_p_values_joint <- function(simulation_coefs, simulation_vcov, generator_
 #' @param plot_uniform Boolean to plot uniform distribution.
 #' @param ylab y-axis label
 #' @param xlab x-axis label
+#' @param args_sim Extra arguments passed to [simulate_coefficients()].
 #' @param ... Extra arguments from [plot()]
 #' @param ask Logical, ask to show next plot
 #' @param use_tstat Logical, Should use t-test using model df.residual.
@@ -119,14 +121,18 @@ plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
                               which = seq_along(stats::coef(model)),
                               caption = paste("ECDF of", names(stats::coef(model)))[which],
                               plot_uniform = TRUE,
-                              ylab = "Empirical cumulative distribution", xlab = "p-value", ...,
+                              ylab = "Empirical cumulative distribution", xlab = "p-value",
+                              args_sim = list(), ...,
                               ask = prod(graphics::par("mfcol")) < length(which) && grDevices::dev.interactive(),
                               use_tstat = NULL) {
   if (ask) {
     oask <- grDevices::devAskNewPage(TRUE)
     on.exit(grDevices::devAskNewPage(oask))
   }
-  simulation <- simulate_coefficients(model = model, generator = generator, n_sim = n_sim)
+  simulation <- do.call(simulate_coefficients, c(
+    model = list(model), generator = list(generator),
+    n_sim = n_sim, args_sim
+  ))
   statistic <- compute_statistic(
     simulation_coefs = simulation$coefs,
     simulation_vcov = simulation$vcov,
@@ -163,6 +169,7 @@ plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
 #' @param plot_uniform Boolean to plot uniform distribution.
 #' @param ylab y-axis label
 #' @param xlab x-axis label
+#' @param args_sim Extra arguments passed to [simulate_coefficients()].
 #' @param ... Extra arguments from [plot()]
 #'
 #' @return Double vector with joint p-values.
@@ -176,8 +183,11 @@ plot_joint_pvalues_ecdf <- function(model,
                                     generator = NULL, n_sim = 1000,
                                     plot_uniform = TRUE,
                                     ylab = "Empirical cumulative distribution", xlab = "p-value",
-                                    ...) {
-  simulation <- simulate_coefficients(model = model, generator = generator, n_sim = n_sim)
+                                    args_sim = list(), ...) {
+  simulation <- do.call(simulate_coefficients, c(
+    model = list(model), generator = list(generator),
+    n_sim = n_sim, args_sim
+  ))
   p_value <- compute_p_values_joint(
     simulation_coefs = simulation$coefs,
     simulation_vcov = simulation$vcov,
