@@ -10,8 +10,9 @@ plot_pvalues_ecdf(
   n_sim = 1000,
   which = seq_along(stats::coef(model)),
   caption = paste("ECDF of", names(stats::coef(model)))[which],
-  ylab = "Fn(x)",
-  xlab = "x",
+  plot_uniform = TRUE,
+  ylab = "Empirical cumulative distribution",
+  xlab = "p-value",
   ...,
   ask = prod(graphics::par("mfcol")) < length(which) && grDevices::dev.interactive()
 )
@@ -26,6 +27,8 @@ plot_pvalues_ecdf(
 \item{which}{vector of integers with model coefficients indices to plot.}
 
 \item{caption}{Plot title for each coefficient.}
+
+\item{plot_uniform}{Boolean to plot uniform distribution.}
 
 \item{ylab}{y-axis label}
 
