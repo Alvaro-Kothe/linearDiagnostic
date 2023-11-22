@@ -4,7 +4,7 @@
 \alias{simulate_coefficients}
 \title{Simulate Model Coefficients}
 \usage{
-simulate_coefficients(model, generator = NULL, n_sim = 100)
+simulate_coefficients(model, generator = NULL, n_sim = 100, ...)
 }
 \arguments{
 \item{model}{A model with [update()] method}
@@ -12,6 +12,8 @@ simulate_coefficients(model, generator = NULL, n_sim = 100)
 \item{generator}{Optional custom generator function with 2 arguments (n, mu)}
 
 \item{n_sim}{Number of simulations}
+
+\item{...}{Extra arguments to [stats::update()]}
 }
 \value{
 A list with a list for coefficients and a list with vcov, each of length n_sim

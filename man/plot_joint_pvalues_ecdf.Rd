@@ -10,6 +10,7 @@ plot_joint_pvalues_ecdf(
   n_sim = 1000,
   ylab = "Fn(x)",
   xlab = "x",
+  args_sim = list(),
   ...
 )
 }
@@ -23,6 +24,8 @@ plot_joint_pvalues_ecdf(
 \item{ylab}{y-axis label}
 
 \item{xlab}{x-axis label}
+
+\item{args_sim}{Extra arguments passed to [simulate_coefficients()].}
 
 \item{...}{Extra arguments from [plot()]}
 }

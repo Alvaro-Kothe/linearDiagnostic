@@ -12,6 +12,7 @@ plot_pvalues_ecdf(
   caption = paste("ECDF of", names(stats::coef(model)))[which],
   ylab = "Fn(x)",
   xlab = "x",
+  args_sim = list(),
   ...,
   ask = prod(graphics::par("mfcol")) < length(which) && grDevices::dev.interactive()
 )
@@ -30,6 +31,8 @@ plot_pvalues_ecdf(
 \item{ylab}{y-axis label}
 
 \item{xlab}{x-axis label}
+
+\item{args_sim}{Extra arguments passed to [simulate_coefficients()].}
 
 \item{...}{Extra arguments from [plot()]}
 

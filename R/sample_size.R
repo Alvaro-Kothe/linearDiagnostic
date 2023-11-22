@@ -3,6 +3,7 @@
 #' @param model A model with [update()] method
 #' @param generator Optional custom generator function with 2 arguments (n, mu)
 #' @param n_sim Number of simulations
+#' @param ... Extra arguments to [stats::update()]
 #'
 #' @return A list with a list for coefficients and a list with vcov, each of length n_sim
 #' @export
@@ -14,7 +15,7 @@
 #'
 #' simulate_coefficients(fit, generator = generator)
 #'
-simulate_coefficients <- function(model, generator = NULL, n_sim = 100) {
+simulate_coefficients <- function(model, generator = NULL, n_sim = 100, ...) {
   if (is.null(generator)) {
     y_star <- stats::simulate(model, n_sim)
   } else {
@@ -25,7 +26,6 @@ simulate_coefficients <- function(model, generator = NULL, n_sim = 100) {
     )
     names(y_star) <- paste0("sim_", seq_along(y_star))
   }
-  model_frame <- stats::model.frame(model)
 
   coefs <- list()
   variances <- list()
@@ -37,7 +37,7 @@ simulate_coefficients <- function(model, generator = NULL, n_sim = 100) {
       paste(enquote(y_)[2], "~.", collapse = "")
     )
 
-    refit <- stats::update(model, formula. = formula_new_response, data = model_frame)
+    refit <- stats::update(model, formula. = formula_new_response, ...)
 
     coefs[[i]] <- stats::coef(refit)
     variances[[i]] <- stats::vcov(refit)
@@ -95,6 +95,7 @@ compute_p_values_joint <- function(simulation_coefs, simulation_vcov, generator_
 #' @param caption Plot title for each coefficient.
 #' @param ylab y-axis label
 #' @param xlab x-axis label
+#' @param args_sim Extra arguments passed to [simulate_coefficients()].
 #' @param ... Extra arguments from [plot()]
 #' @param ask Logical, ask to show next plot
 #'
@@ -108,13 +109,16 @@ compute_p_values_joint <- function(simulation_coefs, simulation_vcov, generator_
 plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
                               which = seq_along(stats::coef(model)),
                               caption = paste("ECDF of", names(stats::coef(model)))[which],
-                              ylab = "Fn(x)", xlab = "x", ...,
+                              ylab = "Fn(x)", xlab = "x", args_sim = list(), ...,
                               ask = prod(graphics::par("mfcol")) < length(which) && grDevices::dev.interactive()) {
   if (ask) {
     oask <- grDevices::devAskNewPage(TRUE)
     on.exit(grDevices::devAskNewPage(oask))
   }
-  simulation <- simulate_coefficients(model = model, generator = generator, n_sim = n_sim)
+  simulation <- do.call(simulate_coefficients, c(
+    model = list(model), generator = list(generator),
+    n_sim = n_sim, args_sim
+  ))
   p_values <- compute_p_values(
     simulation_coefs = simulation$coefs,
     simulation_vcov = simulation$vcov,
@@ -137,6 +141,7 @@ plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
 #' @param n_sim Number of simulations.
 #' @param ylab y-axis label
 #' @param xlab x-axis label
+#' @param args_sim Extra arguments passed to [simulate_coefficients()].
 #' @param ... Extra arguments from [plot()]
 #'
 #' @return Double vector with joint p-values.
@@ -147,8 +152,12 @@ plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
 #'
 #' plot_joint_pvalues_ecdf(fit)
 plot_joint_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
-                                    ylab = "Fn(x)", xlab = "x", ...) {
-  simulation <- simulate_coefficients(model = model, generator = generator, n_sim = n_sim)
+                                    ylab = "Fn(x)", xlab = "x",
+                                    args_sim = list(), ...) {
+  simulation <- do.call(simulate_coefficients, c(
+    model = list(model), generator = list(generator),
+    n_sim = n_sim, args_sim
+  ))
   p_value <- compute_p_values_joint(
     simulation_coefs = simulation$coefs,
     simulation_vcov = simulation$vcov,
