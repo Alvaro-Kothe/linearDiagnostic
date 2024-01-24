@@ -9,6 +9,7 @@ plot_joint_pvalues_ecdf(
   generator = NULL,
   n_sim = 1000,
   plot_uniform = TRUE,
+  uniform_legend = TRUE,
   ylab = "Empirical cumulative distribution",
   xlab = "p-value",
   args_sim = list(),
@@ -23,6 +24,9 @@ plot_joint_pvalues_ecdf(
 \item{n_sim}{Number of simulations.}
 
 \item{plot_uniform}{Boolean to plot uniform distribution.}
+
+\item{uniform_legend}{Boolean show legend indicating uniform line
+when `plot_uniform` is `TRUE`.}
 
 \item{ylab}{y-axis label}
 

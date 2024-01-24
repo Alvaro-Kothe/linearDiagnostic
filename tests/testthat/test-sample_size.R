@@ -56,15 +56,18 @@ test_that("plot_*_pvalues_ecdf work", {
   x <- c(1, 3, 5, 7)
   y <- c(2, 3, 6, 9)
   fit <- lm(y ~ x)
+  mpg_fit <- lm(mpg ~ ., data = mtcars)
 
   set.seed(1)
   expect_no_error(plot_joint_pvalues_ecdf(fit))
   expect_no_error(plot_pvalues_ecdf(fit))
   expect_no_error(plot_pvalues_ecdf(fit, ask = TRUE))
   expect_no_error(plot_pvalues_ecdf(fit, ask = FALSE))
+  expect_no_error(plot_joint_pvalues_ecdf(fit, plot_uniform = TRUE, uniform_legend = FALSE))
   expect_no_error(plot_joint_pvalues_ecdf(fit, plot_uniform = TRUE))
   expect_no_error(plot_joint_pvalues_ecdf(fit, plot_uniform = FALSE))
   expect_no_error(plot_pvalues_ecdf(fit, plot_uniform = TRUE))
+  expect_no_error(plot_pvalues_ecdf(fit, plot_uniform = TRUE, uniform_legend = FALSE))
   expect_no_error(plot_pvalues_ecdf(fit, plot_uniform = FALSE))
 })
 

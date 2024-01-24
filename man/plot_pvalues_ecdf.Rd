@@ -9,8 +9,9 @@ plot_pvalues_ecdf(
   generator = NULL,
   n_sim = 1000,
   which = seq_along(stats::coef(model)),
-  caption = paste("ECDF of", names(stats::coef(model)))[which],
+  caption = paste("ECDF of", names(stats::coef(model))[which]),
   plot_uniform = TRUE,
+  uniform_legend = TRUE,
   ylab = "Empirical cumulative distribution",
   xlab = "p-value",
   args_sim = list(),
@@ -31,6 +32,9 @@ plot_pvalues_ecdf(
 \item{caption}{Plot title for each coefficient.}
 
 \item{plot_uniform}{Boolean to plot uniform distribution.}
+
+\item{uniform_legend}{Boolean show legend indicating uniform line
+when `plot_uniform` is `TRUE`.}
 
 \item{ylab}{y-axis label}
 
