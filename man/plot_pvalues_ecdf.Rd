@@ -2,7 +2,7 @@
 % Please edit documentation in R/sample_size.R
 \name{plot_pvalues_ecdf}
 \alias{plot_pvalues_ecdf}
-\title{Plot Simulation p-values}
+\title{Plot Empirical Cumulative Distribution Function (ECDF) of p-values}
 \usage{
 plot_pvalues_ecdf(
   model,
@@ -21,42 +21,54 @@ plot_pvalues_ecdf(
 )
 }
 \arguments{
-\item{model}{A model with [update()] method.}
+\item{model}{A model with [update()], [simulate()], [fitted()],
+[coef()], [vcov()] methods.}
 
-\item{generator}{Optional custom generator function with 2 arguments (n, mu).}
+\item{generator}{An optional function 2 arguments (n, mu) to generate new response vectors.
+If NULL, the model's [simulate()] method is used. Otherwise, the generator
+function is used to simulate responses.}
 
-\item{n_sim}{Number of simulations.}
+\item{n_sim}{The number of simulations to perform. Defaults to 100.}
 
-\item{which}{vector of integers with model coefficients indices to plot.}
+\item{which}{A vector specifying the indices of coefficients to plot. Defaults
+to all coefficients.}
 
-\item{caption}{Plot title for each coefficient.}
+\item{caption}{A character vector providing plot captions for each coefficient.}
 
-\item{plot_uniform}{Boolean to plot uniform distribution.}
+\item{plot_uniform}{Logical. If TRUE, plot uniform distribution.}
 
-\item{uniform_legend}{Boolean show legend indicating uniform line
-when `plot_uniform` is `TRUE`.}
+\item{uniform_legend}{Logical. If TRUE, a legend is added to the plot to
+distinguish between the p-value and U(0, 1) curves. Defaults to TRUE.}
 
-\item{ylab}{y-axis label}
+\item{ylab}{The label for the y-axis. Defaults to "Empirical cumulative distribution".}
 
-\item{xlab}{x-axis label}
+\item{xlab}{The label for the x-axis. Defaults to "p-value".}
 
 \item{args_sim}{Extra arguments passed to [simulate_coefficients()].}
 
 \item{...}{Extra arguments from [plot()]}
 
-\item{ask}{Logical, ask to show next plot}
+\item{ask}{Logical. If TRUE, the user is prompted before each plot. Defaults
+to TRUE if in an interactive session and the number of plots is greater
+than the available space; otherwise, FALSE.}
 
-\item{use_tstat}{Logical, Should use t-test using model df.residual.
-If `NULL` look at the model summary to decide.}
+\item{use_tstat}{Logical. If TRUE, the t-statistic is used for computing p-values.
+If FALSE, the z-statistic is used. If NULL, the default is determined based on
+the presence of the "t value" column in the summary of the model coefficients.}
 }
 \value{
 Matrix with p_values obtained from the simulations.
 }
 \description{
-Plot Simulation p-values
+This function generates a series of plots displaying the empirical cumulative
+distribution function (ECDF) of p-values for selected coefficients in a
+model. The p-values are computed based on simulated coefficients
+and covariance matrices.
 }
 \examples{
+\dontrun{
 fit <- lm(mpg ~ cyl, data = mtcars)
 
 plot_pvalues_ecdf(fit)
+}
 }

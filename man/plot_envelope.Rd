@@ -12,22 +12,36 @@ plot_envelope(
 )
 }
 \arguments{
-\item{model}{A model with [update()] method}
+\item{model}{A model with [stats::update()] and [stats::simulate()] methods.}
 
-\item{xlab}{x-axis label}
+\item{xlab}{The label for the x-axis. Defaults to "Expected quantiles".}
 
-\item{ylab}{y-axis label}
+\item{ylab}{The label for the y-axis. Defaults to "Observed quantiles".}
 
 \item{...}{Additional arguments for [envelope_measures()]}
 }
 \value{
-Creates the simulated envelope plot and returns its components
+A list containing the following components:
+\describe{
+  \item{expected}{A vector of expected quantiles from a normal distribution.}
+  \item{observed}{A vector of observed quantiles from the model residuals.}
+  \item{outside}{A logical vector indicating whether each observation falls
+  outside the constructed envelope bounds.}
+  \item{lower}{The lower bounds of the envelope for each observation.}
+  \item{med}{The median bounds of the envelope for each observation.}
+  \item{upper}{The upper bounds of the envelope for each observation.}
+}
 }
 \description{
-Plot Simulated Envelope
+This function generates a plot to visualize the envelope measures.
+The plot includes expected quantiles versus observed
+quantiles, along with lower, median, and upper bounds of the constructed
+envelope.
 }
 \examples{
-fit <- lm(mpg ~ cyl, data = mtcars)
+\dontrun{
+model <- lm(mpg ~ wt + hp, data = mtcars)
+plot_envelope(model)
+}
 
-plot_envelope(fit)
 }

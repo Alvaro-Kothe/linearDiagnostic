@@ -1,20 +1,34 @@
-#' Simulate Model Coefficients
+#' Simulate Model Coefficients and Covariance Matrix
 #'
-#' @param model A model with [update()] method
-#' @param generator Optional custom generator function with 2 arguments (n, mu)
-#' @param n_sim Number of simulations
+#' This function simulates coefficients and the covariance matrix for a fitted
+#' model. It allows for generating new response vectors either using
+#' the model's simulation method or a user-specified generator function. For each
+#' simulated response, the model is refitted, and the coefficients and covariance
+#' matrix of the refitted model are stored.
+#'
+#' @param model A model with [update()], [simulate()], [fitted()],
+#' [coef()], [vcov()] methods.
+#' @param generator An optional function 2 arguments (n, mu) to generate new response vectors.
+#'   If NULL, the model's [simulate()] method is used. Otherwise, the generator
+#'   function is used to simulate responses.
+#' @param n_sim The number of simulations to perform. Defaults to 100.
 #' @param ... Extra arguments to [stats::update()]
 #'
-#' @return A list with a list for coefficients and a list with vcov, each of length n_sim
-#' @export
+#' @return A list containing the simulated coefficients and covariance matrices.
+#'   The list includes components:
+#' \describe{
+#'   \item{coefs}{A list of coefficient vectors for each simulated response.}
+#'   \item{vcov}{A list of covariance matrices for each simulated response.}
+#' }
 #'
 #' @examples
+#' \dontrun{
 #' fit <- lm(mpg ~ cyl, data = mtcars)
-#'
 #' generator <- function(n, mu) rt(n, 3) + mu
-#'
 #' simulate_coefficients(fit, generator = generator)
+#' }
 #'
+#' @export
 simulate_coefficients <- function(model, generator = NULL, n_sim = 100, ...) {
   if (is.null(generator)) {
     y_star <- stats::simulate(model, n_sim)
@@ -94,31 +108,40 @@ compute_p_values_joint <- function(simulation_coefs, simulation_vcov, generator_
   return(p_values)
 }
 
-#' Plot Simulation p-values
+#' Plot Empirical Cumulative Distribution Function (ECDF) of p-values
 #'
-#' @param model A model with [update()] method.
-#' @param generator Optional custom generator function with 2 arguments (n, mu).
-#' @param n_sim Number of simulations.
-#' @param which vector of integers with model coefficients indices to plot.
-#' @param caption Plot title for each coefficient.
-#' @param plot_uniform Boolean to plot uniform distribution.
-#' @param uniform_legend Boolean show legend indicating uniform line
-#' when `plot_uniform` is `TRUE`.
-#' @param ylab y-axis label
-#' @param xlab x-axis label
+#' This function generates a series of plots displaying the empirical cumulative
+#' distribution function (ECDF) of p-values for selected coefficients in a
+#' model. The p-values are computed based on simulated coefficients
+#' and covariance matrices.
+#'
+#' @inheritParams simulate_coefficients
+#' @param which A vector specifying the indices of coefficients to plot. Defaults
+#'   to all coefficients.
+#' @param caption A character vector providing plot captions for each coefficient.
+#' @param plot_uniform Logical. If TRUE, plot uniform distribution.
+#' @param uniform_legend Logical. If TRUE, a legend is added to the plot to
+#'   distinguish between the p-value and U(0, 1) curves. Defaults to TRUE.
+#' @param ylab The label for the y-axis. Defaults to "Empirical cumulative distribution".
+#' @param xlab The label for the x-axis. Defaults to "p-value".
 #' @param args_sim Extra arguments passed to [simulate_coefficients()].
 #' @param ... Extra arguments from [plot()]
-#' @param ask Logical, ask to show next plot
-#' @param use_tstat Logical, Should use t-test using model df.residual.
-#' If `NULL` look at the model summary to decide.
+#' @param ask Logical. If TRUE, the user is prompted before each plot. Defaults
+#'   to TRUE if in an interactive session and the number of plots is greater
+#'   than the available space; otherwise, FALSE.
+#' @param use_tstat Logical. If TRUE, the t-statistic is used for computing p-values.
+#'   If FALSE, the z-statistic is used. If NULL, the default is determined based on
+#'   the presence of the "t value" column in the summary of the model coefficients.
 #'
 #' @return Matrix with p_values obtained from the simulations.
-#' @export
 #'
 #' @examples
+#' \dontrun{
 #' fit <- lm(mpg ~ cyl, data = mtcars)
 #'
 #' plot_pvalues_ecdf(fit)
+#' }
+#' @export
 plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
                               which = seq_along(stats::coef(model)),
                               caption = paste("ECDF of", names(stats::coef(model))[which]),
@@ -167,26 +190,23 @@ plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
   return(invisible(p_values))
 }
 
-#' Plot Simulation joint p-values
+#' Plot Joint Empirical Cumulative Distribution Function (ECDF) of p-values
 #'
-#' @param model A model with [update()] method.
-#' @param generator Optional custom generator function with 2 arguments (n, mu).
-#' @param n_sim Number of simulations.
-#' @param plot_uniform Boolean to plot uniform distribution.
-#' @param uniform_legend Boolean show legend indicating uniform line
-#' when `plot_uniform` is `TRUE`.
-#' @param ylab y-axis label
-#' @param xlab x-axis label
-#' @param args_sim Extra arguments passed to [simulate_coefficients()].
-#' @param ... Extra arguments from [plot()]
+#' This function generates a plot displaying the joint empirical cumulative
+#' distribution function (ECDF) of p-values for all coefficients in a model.
+#' The p-values are computed based on simulated coefficients and covariance
+#' matrices.
 #'
-#' @return Double vector with joint p-values.
-#' @export
+#' @inheritParams plot_pvalues_ecdf
+#'
+#' @return A vector of joint p-values for all coefficients.
 #'
 #' @examples
+#' \dontrun{
 #' fit <- lm(mpg ~ cyl, data = mtcars)
-#'
 #' plot_joint_pvalues_ecdf(fit)
+#' }
+#' @export
 plot_joint_pvalues_ecdf <- function(model,
                                     generator = NULL, n_sim = 1000,
                                     plot_uniform = TRUE,

@@ -15,26 +15,28 @@ plot_res_vs_linear_predictor(
 \arguments{
 \item{model}{Model with methods [predict()] or [fitted()]}
 
-\item{residual_fn}{function to compute residuals, default [rstandard()],
-other functions could be [rstudent()], [residuals()].}
+\item{residual_fn}{A function to calculate model residuals. The default is
+`stats::rstandard`.}
 
-\item{xlab}{x-axis label}
+\item{xlab}{The label for the x-axis. Defaults to "Linear Predictor".}
 
-\item{ylab}{y-axis label}
+\item{ylab}{The label for the y-axis. Defaults to "Standardized deviance residuals".}
 
-\item{...}{Extra arguments to `residual_fn`}
+\item{...}{Extra arguments to `residual_fn` and [plot()].}
 }
 \value{
-invisible list with plot components
+An invisible list containing the linear predictor (x) and standardized
+  deviance residuals (y).
 }
 \description{
 Plot Residuals against Linear Predictor
 }
 \details{
 If the model was fitted using the [glm()] function, it will use the [predict()]
-method, otherwise, it will use the [fitted()] method.
+method with `type = link`, otherwise, it will use the [fitted()] method.
 }
 \examples{
+\dontrun{
 fit <- lm(mpg ~ cyl, data = mtcars)
 
 plot_res_vs_linear_predictor(fit)
@@ -46,4 +48,6 @@ glm_fit <- glm(cyl ~ mpg, family = poisson(), data = mtcars)
 
 plot_res_vs_linear_predictor(glm_fit)
 plot_res_vs_linear_predictor(glm_fit, type = "pearson")
+}
+
 }

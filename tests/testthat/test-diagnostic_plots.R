@@ -8,4 +8,5 @@ test_that("Plot functions runs without problems", {
   expect_no_error(plot_cook(fit, n_highlights = 2))
   expect_no_error(plot_cook(fit, cut = TRUE))
   expect_no_error(plot_res_vs_linear_predictor(fit))
+  expect_no_error(plot_res_vs_linear_predictor(fit, pch = 20))
 })

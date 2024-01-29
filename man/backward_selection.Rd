@@ -15,24 +15,29 @@ backward_selection(
 )
 }
 \arguments{
-\item{model}{A model with [stats::update()] method.}
+\item{model}{A model with [stats::update()], [stats::coef()] methods.}
 
-\item{threshold}{Value threshold to remove variable. where the variable is
-removed if `measure_fn(model) >= threshold`.}
+\item{threshold}{Value threshold to remove variable. It can be a fixed value
+or a function. The variable is removed if `measure_fn(model) > threshold` and
+added if `measure_fn(model) <= threshold`.}
 
 \item{measure_fn}{Function with model as argument and returns values to be used by
-`threshold`. Default is p-value reported by [summary()].}
+`threshold`. It can also compare two models, where during forward step
+it calls `measure_fn(candidate_model, current_selected_model)` and
+during backward step it calls `measure_fn(current_selected_model, candidate_model)`.
+Defaults to the p-value from the summary of the coefficients.}
 
 \item{data}{Data to be used for model refit.}
 
-\item{max_steps}{Maximum number of steps for selection.}
+\item{max_steps}{The maximum number of steps for the variable selection process.
+Defaults to 1000.}
 
-\item{return_step_results}{Boolean that if `TRUE` returns a list with the first
-argument the selection result, and second argument a list with step, operation,
-variable and its value.
-`measure_fn` measures and coefficient removed.}
+\item{return_step_results}{Logical. If TRUE, the function returns a list
+containing the final fitted model and a log of the selection steps.
+Defaults to FALSE.}
 
-\item{do_not_remove}{String vector of variables to not be removed in the selection.}
+\item{do_not_remove}{A character vector specifying variables that should not
+be removed during backward selection. Defaults to "(Intercept)".}
 }
 \value{
 the selected model if `return_step_results` is `False`.
@@ -41,6 +46,9 @@ the selected model if `return_step_results` is `False`.
 Select covariates backwise
 }
 \examples{
+\dontrun{
 model <- lm(mpg ~ ., data = mtcars)
 backward_selection(model)
+}
+
 }

@@ -59,16 +59,16 @@ test_that("plot_*_pvalues_ecdf work", {
   mpg_fit <- lm(mpg ~ ., data = mtcars)
 
   set.seed(1)
-  expect_no_error(plot_joint_pvalues_ecdf(fit))
-  expect_no_error(plot_pvalues_ecdf(fit))
-  expect_no_error(plot_pvalues_ecdf(fit, ask = TRUE))
-  expect_no_error(plot_pvalues_ecdf(fit, ask = FALSE))
-  expect_no_error(plot_joint_pvalues_ecdf(fit, plot_uniform = TRUE, uniform_legend = FALSE))
-  expect_no_error(plot_joint_pvalues_ecdf(fit, plot_uniform = TRUE))
-  expect_no_error(plot_joint_pvalues_ecdf(fit, plot_uniform = FALSE))
-  expect_no_error(plot_pvalues_ecdf(fit, plot_uniform = TRUE))
-  expect_no_error(plot_pvalues_ecdf(fit, plot_uniform = TRUE, uniform_legend = FALSE))
-  expect_no_error(plot_pvalues_ecdf(fit, plot_uniform = FALSE))
+  expect_no_error(plot_joint_pvalues_ecdf(fit, n_sim = 10))
+  expect_no_error(plot_pvalues_ecdf(fit, n_sim = 10))
+  expect_no_error(plot_pvalues_ecdf(fit, n_sim = 10, ask = TRUE))
+  expect_no_error(plot_pvalues_ecdf(fit, n_sim = 10, ask = FALSE))
+  expect_no_error(plot_joint_pvalues_ecdf(fit, n_sim = 10, plot_uniform = TRUE, uniform_legend = FALSE))
+  expect_no_error(plot_joint_pvalues_ecdf(fit, n_sim = 10, plot_uniform = TRUE))
+  expect_no_error(plot_joint_pvalues_ecdf(fit, n_sim = 10, plot_uniform = FALSE))
+  expect_no_error(plot_pvalues_ecdf(fit, n_sim = 10, plot_uniform = TRUE))
+  expect_no_error(plot_pvalues_ecdf(fit, n_sim = 10, plot_uniform = TRUE, uniform_legend = FALSE))
+  expect_no_error(plot_pvalues_ecdf(fit, n_sim = 10, plot_uniform = FALSE))
 })
 
 test_that("plot_*_pvalues throw warning with singular matrix", {
@@ -114,10 +114,10 @@ test_that("plot_*_ecdf() errors when data is unavailable", {
   fit <- lm(y ~ x, data = df)
   rm(df)
 
-  expect_error(plot_joint_pvalues_ecdf(fit))
-  expect_error(plot_pvalues_ecdf(fit))
-  expect_no_error(plot_joint_pvalues_ecdf(fit, args_sim = list(data = model.frame(fit))))
-  expect_no_error(plot_pvalues_ecdf(fit, args_sim = list(data = model.frame(fit))))
+  expect_error(plot_joint_pvalues_ecdf(fit, n_sim = 10))
+  expect_error(plot_pvalues_ecdf(fit, n_sim = 10))
+  expect_no_error(plot_joint_pvalues_ecdf(fit, n_sim = 10, args_sim = list(data = model.frame(fit))))
+  expect_no_error(plot_pvalues_ecdf(fit, n_sim = 10, args_sim = list(data = model.frame(fit))))
 })
 
 

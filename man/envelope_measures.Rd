@@ -8,31 +8,50 @@ envelope_measures(
   model,
   residual_fn = stats::rstudent,
   alpha = 0.05,
-  n_sim = 100
+  n_sim = 100,
+  ...
 )
 }
 \arguments{
-\item{model}{A model with [stats::update()] method}
+\item{model}{A model with [stats::update()] and [stats::simulate()] methods.}
 
-\item{residual_fn}{Function to compute residual using `model`}
+\item{residual_fn}{A function to calculate model residuals. The default is
+`stats::rstudent` for studentized residuals.}
 
-\item{alpha}{Confidence Band level}
+\item{alpha}{The significance level for constructing the envelope bounds.
+Defaults to 0.05.}
 
-\item{n_sim}{Number of simulations}
+\item{n_sim}{The number of simulations to perform for envelope construction.
+Defaults to 100.}
+
+\item{...}{Extra arguments to [stats::update()]}
 }
 \value{
-A list of vectors with the expected, observed quantiles,
-boolean, indicating inside or outside of band; and
-lower band values with `alpha/2`, median, upper band values with `1 - alpha/2`.
+A list containing the following components:
+\describe{
+  \item{expected}{A vector of expected quantiles from a normal distribution.}
+  \item{observed}{A vector of observed quantiles from the model residuals.}
+  \item{outside}{A logical vector indicating whether each observation falls
+  outside the constructed envelope bounds.}
+  \item{lower}{The lower bounds of the envelope for each observation.}
+  \item{med}{The median bounds of the envelope for each observation.}
+  \item{upper}{The upper bounds of the envelope for each observation.}
+}
 }
 \description{
 Generate Simulated Envelope Measures
 }
 \examples{
+\dontrun{
 fit <- lm(mpg ~ cyl, data = mtcars)
 
 envelope_measures(fit, residual_fn = function(x) residuals.lm(x, type = "deviance"))
 
 envelope_measures(fit, n_sim = 200)
 envelope_measures(fit, residual_fn = rstandard, n_sim = 200)
+}
+
+}
+\seealso{
+\code{\link{update}}, \code{\link{simulate}}, \code{\link{rstudent}}
 }
