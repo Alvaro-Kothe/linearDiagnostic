@@ -31,15 +31,14 @@ add_variable <- function(x) {
 #' @export
 backward_selection <- function(model, threshold = .15,
                                measure_fn = function(x) summary(x)[["coefficients"]][, 4],
-                               data = NULL,
                                max_steps = 1000,
                                return_step_results = FALSE,
-                               do_not_remove = c("(Intercept)")) {
+                               do_not_remove = c("(Intercept)"), ...) {
   return(select_covariates(
     model = model, direction = "backward",
-    threshold = threshold, measure_fn = measure_fn, data = data, max_steps = max_steps,
+    threshold = threshold, measure_fn = measure_fn, max_steps = max_steps,
     return_step_results = return_step_results,
-    do_not_remove = do_not_remove
+    do_not_remove = do_not_remove, ...
   ))
 }
 
@@ -70,25 +69,23 @@ backward_selection <- function(model, threshold = .15,
 bidirectional_selection <- function(model, threshold = .15,
                                     addable_coefs = NULL,
                                     measure_fn = function(x) summary(x)[["coefficients"]][, 4],
-                                    data = NULL,
                                     max_steps = 1000,
                                     return_step_results = FALSE,
-                                    do_not_remove = c("(Intercept)")) {
+                                    do_not_remove = c("(Intercept)"), ...) {
   return(select_covariates(
     model = model, direction = "both",
     threshold = threshold, addable_coefs = addable_coefs,
-    measure_fn = measure_fn, data = data, max_steps = max_steps,
+    measure_fn = measure_fn, max_steps = max_steps,
     return_step_results = return_step_results,
-    do_not_remove = do_not_remove
+    do_not_remove = do_not_remove, ...
   ))
 }
 
 backward_values <- function(model,
                             measure_fn,
                             measure_one_at_time,
-                            data,
                             do_not_remove,
-                            seen_states) {
+                            seen_states, ...) {
   nargs_measure_fn <- length(formals(measure_fn))
   cur_coefs <- names(stats::coef(model))
   candidates_remove <- stats::setNames(nm = setdiff(cur_coefs, do_not_remove))
@@ -112,7 +109,7 @@ backward_values <- function(model,
     values <- sapply(next_states_lookup, function(remove_candidate) {
       next_formula <- remove_variable(remove_candidate)
 
-      next_fit <- stats::update(model, formula. = next_formula, data = data)
+      next_fit <- stats::update(model, formula. = next_formula, ...)
 
       eval_value <- if (nargs_measure_fn == 1L) {
         measure_fn(next_fit)
@@ -130,9 +127,8 @@ backward_values <- function(model,
 forward_values <- function(model,
                            measure_fn,
                            measure_one_at_time,
-                           data,
                            addable_coefs,
-                           seen_states) {
+                           seen_states, ...) {
   nargs_measure_fn <- length(formals(measure_fn))
   add_candidates <- setdiff(addable_coefs, names(stats::coef(model)))
   possible_next_states <- lapply(add_candidates, c, names(stats::coef(model)))
@@ -146,7 +142,7 @@ forward_values <- function(model,
   values <- sapply(add_candidates, function(add_cand) {
     next_formula <- add_variable(add_cand)
 
-    next_fit <- stats::update(model, formula. = next_formula, data = data)
+    next_fit <- stats::update(model, formula. = next_formula, ...)
 
     if (!evaluate_one_at_time) {
       return(measure_fn(next_fit)[[add_cand]])
@@ -165,8 +161,8 @@ forward_values <- function(model,
 update_model_remove <- function(model,
                                 values,
                                 threshold,
-                                data,
-                                minimize_only = FALSE) {
+                                minimize_only = FALSE,
+                                ...) {
   to_remove <- if (minimize_only) which.min(values) else which.max(values)
   if (length(to_remove) == 0L) {
     return(NULL)
@@ -181,12 +177,12 @@ update_model_remove <- function(model,
   removed_var <- names(to_remove)
   next_formula <- remove_variable(removed_var)
 
-  model <- stats::update(model, formula. = next_formula, data = data)
+  model <- stats::update(model, formula. = next_formula, ...)
 
   return(list(fit = model, removed_var = value))
 }
 
-update_model_add <- function(model, values, threshold, data) {
+update_model_add <- function(model, values, threshold, ...) {
   to_add <- which.min(values)
   if (length(to_add) == 0L) {
     return(NULL)
@@ -201,7 +197,7 @@ update_model_add <- function(model, values, threshold, data) {
   added_var <- names(to_add)
   next_formula <- add_variable(added_var)
 
-  model <- stats::update(model, formula. = next_formula, data = data)
+  model <- stats::update(model, formula. = next_formula, ...)
 
   return(list(fit = model, added_var = value))
 }
@@ -227,7 +223,6 @@ update_model_add <- function(model, values, threshold, data) {
 #' `measure_fn` is `AIC`.
 #' @param minimize_only Logical indicating that during backward model update
 #' it should minimize the `measure_fn` instead of maximize it.
-#' @param data Data to be used for model refit.
 #' @param max_steps The maximum number of steps for the variable selection process.
 #'   Defaults to 1000.
 #' @param return_step_results Logical. If TRUE, the function returns a list
@@ -235,6 +230,7 @@ update_model_add <- function(model, values, threshold, data) {
 #'   Defaults to FALSE.
 #' @param do_not_remove A character vector specifying variables that should not
 #'   be removed during backward selection. Defaults to "(Intercept)".
+#' @param ... Extra arguments to [stats::update()].
 #'
 #' @return A fitted model with selected covariates based on the variable selection process.
 #'   If \code{return_step_results} is TRUE, a list containing the final fitted model
@@ -285,10 +281,9 @@ select_covariates <- function(model,
                               measure_fn = function(x) summary(x)[["coefficients"]][, 4],
                               measure_one_at_time = FALSE,
                               minimize_only = FALSE,
-                              data = NULL,
                               max_steps = 1000,
                               return_step_results = FALSE,
-                              do_not_remove = c("(Intercept)")) {
+                              do_not_remove = c("(Intercept)"), ...) {
   log_ <- list()
   cur_step <- 0
   seen_states <- list(names(stats::coef(model)))
@@ -301,7 +296,6 @@ select_covariates <- function(model,
     function(model_) threshold
   }
 
-  if (is.null(data)) data <- stats::model.frame(model)
   while (cur_step < max_steps) {
     cur_step <- cur_step + 1
 
@@ -313,17 +307,17 @@ select_covariates <- function(model,
         model = model,
         measure_fn = measure_fn,
         measure_one_at_time = measure_one_at_time,
-        data = data,
         do_not_remove = do_not_remove,
-        seen_states = seen_states
+        seen_states = seen_states,
+        ...
       )
 
       updated_model <- update_model_remove(
         model = model,
         values = values,
         threshold = cur_threshold,
-        data = data,
-        minimize_only = minimize_only
+        minimize_only = minimize_only,
+        ...
       )
 
       if (!is.null(updated_model)) {
@@ -343,12 +337,12 @@ select_covariates <- function(model,
         model = model,
         measure_fn = measure_fn,
         measure_one_at_time = measure_one_at_time,
-        data = data,
         addable_coefs = addable_coefs,
-        seen_states = seen_states
+        seen_states = seen_states,
+        ...
       )
 
-      updated_model <- update_model_add(model, values, cur_threshold, data)
+      updated_model <- update_model_add(model, values, cur_threshold, ...)
       if (!is.null(updated_model)) {
         model <- updated_model$fit
         seen_states <- append(seen_states, list(names(stats::coef(model))))
