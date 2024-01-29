@@ -50,7 +50,7 @@ test_that("bidirectional_selection() add covariates", {
 
 test_that("bidirectional_selection() remove covariates", {
   fit <- lm(mpg ~ ., data = mtcars)
-  selection <- bidirectional_selection(fit)
+  selection <- bidirectional_selection(fit, data = mtcars)
   expect_lt(length(coef(selection)), length(coef(fit)))
 })
 
@@ -148,12 +148,12 @@ test_that("return_step_results works", {
 
 test_that("update_model_*() returns expected output", {
   fit <- lm(mpg ~ cyl + disp, data = mtcars)
-  expect_null(update_model_remove(fit, double(), .1, mtcars))
-  expect_null(update_model_remove(fit, c(cyl = .05), .1, mtcars))
-  expect_null(update_model_add(fit, double(), .1, mtcars))
-  expect_null(update_model_add(fit, c(hp = .5), .1, mtcars))
+  expect_null(update_model_remove(fit, double(), .1, data = mtcars))
+  expect_null(update_model_remove(fit, c(cyl = .05), .1, data = mtcars))
+  expect_null(update_model_add(fit, double(), .1, data = mtcars))
+  expect_null(update_model_add(fit, c(hp = .5), .1, data = mtcars))
 
-  updated_remove <- update_model_remove(fit, c(cyl = .2), .1, mtcars)
+  updated_remove <- update_model_remove(fit, c(cyl = .2), .1, data = mtcars)
   expect_true(setdiff(
     names(coef(fit)),
     names(coef(updated_remove$fit))
@@ -161,7 +161,7 @@ test_that("update_model_*() returns expected output", {
 
   expect_identical(updated_remove$removed_var, c(cyl = .2))
 
-  updated_add <- update_model_add(fit, c(hp = .1), .2, mtcars)
+  updated_add <- update_model_add(fit, c(hp = .1), .2, data = mtcars)
   expect_true(setdiff(
     names(coef(updated_add$fit)),
     names(coef(fit))

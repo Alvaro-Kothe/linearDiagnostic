@@ -8,10 +8,10 @@ backward_selection(
   model,
   threshold = 0.15,
   measure_fn = function(x) summary(x)[["coefficients"]][, 4],
-  data = NULL,
   max_steps = 1000,
   return_step_results = FALSE,
-  do_not_remove = c("(Intercept)")
+  do_not_remove = c("(Intercept)"),
+  ...
 )
 }
 \arguments{
@@ -27,8 +27,6 @@ it calls `measure_fn(candidate_model, current_selected_model)` and
 during backward step it calls `measure_fn(current_selected_model, candidate_model)`.
 Defaults to the p-value from the summary of the coefficients.}
 
-\item{data}{Data to be used for model refit.}
-
 \item{max_steps}{The maximum number of steps for the variable selection process.
 Defaults to 1000.}
 
@@ -38,6 +36,8 @@ Defaults to FALSE.}
 
 \item{do_not_remove}{A character vector specifying variables that should not
 be removed during backward selection. Defaults to "(Intercept)".}
+
+\item{...}{Extra arguments to [stats::update()].}
 }
 \value{
 the selected model if `return_step_results` is `False`.
