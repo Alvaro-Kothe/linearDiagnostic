@@ -19,47 +19,54 @@ select_covariates(
 )
 }
 \arguments{
-\item{model}{A model with [stats::update()] method.}
+\item{model}{A model with [stats::update()], [stats::coef()] methods.}
 
-\item{threshold}{Value threshold to remove variable. where the variable is
-removed if `measure_fn(model) > threshold`, added if `measure_fn(model) <= threshold`.
-It can also be a function that evaluates on the current fitted model.}
+\item{threshold}{Value threshold to remove variable. It can be a fixed value
+or a function. The variable is removed if `measure_fn(model) > threshold` and
+added if `measure_fn(model) <= threshold`.}
 
-\item{direction}{Selection method, being both(forward and backward), forward and backward.
-default is "both"}
+\item{direction}{The direction of variable selection. Options include "backward",
+"forward", or "both". Defaults to "both".}
 
-\item{addable_coefs}{Coefficients to try to add during forward step.}
+\item{addable_coefs}{A vector of coefficients that can be added during forward selection.
+Defaults to all coefficients in the model.}
 
 \item{measure_fn}{Function with model as argument and returns values to be used by
 `threshold`. It can also compare two models, where during forward step
 it calls `measure_fn(candidate_model, current_selected_model)` and
-during backward step it calls `measure_fn(current_selected_model, candidate_model)`.}
+during backward step it calls `measure_fn(current_selected_model, candidate_model)`.
+Defaults to the p-value from the summary of the coefficients.}
 
-\item{measure_one_at_time}{Boolean indicating to apply `measure_fn` in one model at a time.
+\item{measure_one_at_time}{Boolean indicating to apply `measure_fn` to each
+variable individually during forward and backward steps.
 Set this option to `TRUE` if `measure_fn` returns an atomic value, for example if
 `measure_fn` is `AIC`.}
 
-\item{minimize_only}{Boolean indicating that during backward model update
+\item{minimize_only}{Logical indicating that during backward model update
 it should minimize the `measure_fn` instead of maximize it.}
 
 \item{data}{Data to be used for model refit.}
 
-\item{max_steps}{Maximum number of steps for selection.}
+\item{max_steps}{The maximum number of steps for the variable selection process.
+Defaults to 1000.}
 
-\item{return_step_results}{Boolean that if `TRUE` returns a list with the first
-argument the selection result, and second argument a list with step, operation,
-variable and its value.
-`measure_fn` measures and coefficient removed.}
+\item{return_step_results}{Logical. If TRUE, the function returns a list
+containing the final fitted model and a log of the selection steps.
+Defaults to FALSE.}
 
-\item{do_not_remove}{String vector of variables to not be removed in the selection.}
+\item{do_not_remove}{A character vector specifying variables that should not
+be removed during backward selection. Defaults to "(Intercept)".}
 }
 \value{
-the selected model if `return_step_results` is `False`.
+A fitted model with selected covariates based on the variable selection process.
+  If \code{return_step_results} is TRUE, a list containing the final fitted model
+  and a log of the selection steps is returned.
 }
 \description{
 Select covariates
 }
 \examples{
+\dontrun{
 model <- lm(mpg ~ ., data = mtcars)
 select_covariates(model)
 
@@ -93,4 +100,6 @@ selection <- select_covariates(model,
   direction = "both",
   data = mtcars
 )
+}
+
 }

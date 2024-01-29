@@ -16,26 +16,33 @@ plot_cook(
 \arguments{
 \item{model}{Model with [cooks.distance()] method}
 
-\item{n_highlights}{Number of points with highest cook distance to highlight in the plot}
+\item{n_highlights}{The number of observations with the highest Cook's
+distance to highlight on the plot. Defaults to 0 (no highlights).}
 
-\item{cut}{Boolean indicating to show horizontal line of 4 standard deviations
-above the Cook's distances mean.}
+\item{cut}{Logical. If TRUE, adds a cutoff line at the mean plus four times
+the standard deviation of Cook's distance. Defaults to FALSE.}
 
-\item{xlab}{x-axis label}
+\item{xlab}{The label for the x-axis. Defaults to "Index".}
 
-\item{ylab}{y-axis label}
+\item{ylab}{The label for the y-axis. Defaults to "Cook's distance".}
 
 \item{...}{Further arguments for [graphics::plot()]}
 }
 \value{
-Cook's distances invisible
+An invisible object representing Cook's distance values.
 }
 \description{
 Plot Cook's distances
 }
 \examples{
+\dontrun{
 fit <- lm(mpg ~ cyl, data = mtcars)
 
 plot_cook(fit)
 plot_cook(fit, n_highlights = 2)
+}
+
+}
+\seealso{
+\code{\link{cooks.distance}}, \code{\link{plot}}
 }

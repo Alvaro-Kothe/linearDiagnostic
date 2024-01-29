@@ -18,25 +18,17 @@ add_variable <- function(x) {
 
 #' Select covariates backwise
 #'
-#' @param model A model with [stats::update()] method.
-#' @param threshold Value threshold to remove variable. where the variable is
-#' removed if `measure_fn(model) >= threshold`.
-#' @param measure_fn Function with model as argument and returns values to be used by
-#' `threshold`. Default is p-value reported by [summary()].
-#' @param data Data to be used for model refit.
-#' @param max_steps Maximum number of steps for selection.
-#' @param return_step_results Boolean that if `TRUE` returns a list with the first
-#' argument the selection result, and second argument a list with step, operation,
-#' variable and its value.
-#' `measure_fn` measures and coefficient removed.
-#' @param do_not_remove String vector of variables to not be removed in the selection.
+#' @inheritParams select_covariates
 #'
 #' @return the selected model if `return_step_results` is `False`.
-#' @export
 #'
 #' @examples
+#' \dontrun{
 #' model <- lm(mpg ~ ., data = mtcars)
 #' backward_selection(model)
+#' }
+#'
+#' @export
 backward_selection <- function(model, threshold = .15,
                                measure_fn = function(x) summary(x)[["coefficients"]][, 4],
                                data = NULL,
@@ -54,27 +46,12 @@ backward_selection <- function(model, threshold = .15,
 
 #' Select covariates bidirectional
 #'
-#' @param model A model with [stats::update()] method.
-#' @param threshold Value threshold to remove variable. where the variable is
-#' removed if `measure_fn(model) > threshold`, added if `measure_fn(model) <= threshold`
-#' @param addable_coefs Coefficients to try to add during forward step.
-#' @param measure_fn Function with model as argument and returns values to be used by
-#' `threshold`. It can also compare two models, where during forward step
-#' it calls `measure_fn(candidate_model, current_selected_model)` and
-#' during backward step it calls `measure_fn(current_selected_model, candidate_model)`.
-#' Default is p-value reported by [summary()].
-#' @param data Data to be used for model refit.
-#' @param max_steps Maximum number of steps for selection.
-#' @param return_step_results Boolean that if `TRUE` returns a list with the first
-#' argument the selection result, and second argument a list with step, operation,
-#' variable and its value.
-#' `measure_fn` measures and coefficient removed.
-#' @param do_not_remove String vector of variables to not be removed in the selection.
+#' @inheritParams select_covariates
 #'
 #' @return the selected model if `return_step_results` is `False`.
-#' @export
 #'
 #' @examples
+#' \dontrun{
 #' model <- lm(mpg ~ ., data = mtcars)
 #' select_covariates(model)
 #'
@@ -87,6 +64,9 @@ backward_selection <- function(model, threshold = .15,
 #' }
 #'
 #' select_covariates(fit, measure_fn = lrt)
+#' }
+#'
+#' @export
 bidirectional_selection <- function(model, threshold = .15,
                                     addable_coefs = NULL,
                                     measure_fn = function(x) summary(x)[["coefficients"]][, 4],
@@ -228,34 +208,40 @@ update_model_add <- function(model, values, threshold, data) {
 
 #' Select covariates
 #'
-#' @param model A model with [stats::update()] method.
-#' @param threshold Value threshold to remove variable. where the variable is
-#' removed if `measure_fn(model) > threshold`, added if `measure_fn(model) <= threshold`.
-#' It can also be a function that evaluates on the current fitted model.
-#' @param direction Selection method, being both(forward and backward), forward and backward.
-#' default is "both"
-#' @param addable_coefs Coefficients to try to add during forward step.
+#' @param model A model with [stats::update()], [stats::coef()] methods.
+#' @param threshold Value threshold to remove variable. It can be a fixed value
+#' or a function. The variable is removed if `measure_fn(model) > threshold` and
+#' added if `measure_fn(model) <= threshold`.
+#' @param direction The direction of variable selection. Options include "backward",
+#'   "forward", or "both". Defaults to "both".
+#' @param addable_coefs A vector of coefficients that can be added during forward selection.
+#'   Defaults to all coefficients in the model.
 #' @param measure_fn Function with model as argument and returns values to be used by
 #' `threshold`. It can also compare two models, where during forward step
 #' it calls `measure_fn(candidate_model, current_selected_model)` and
 #' during backward step it calls `measure_fn(current_selected_model, candidate_model)`.
-#' @param measure_one_at_time Boolean indicating to apply `measure_fn` in one model at a time.
+#' Defaults to the p-value from the summary of the coefficients.
+#' @param measure_one_at_time Boolean indicating to apply `measure_fn` to each
+#' variable individually during forward and backward steps.
 #' Set this option to `TRUE` if `measure_fn` returns an atomic value, for example if
 #' `measure_fn` is `AIC`.
-#' @param minimize_only Boolean indicating that during backward model update
+#' @param minimize_only Logical indicating that during backward model update
 #' it should minimize the `measure_fn` instead of maximize it.
 #' @param data Data to be used for model refit.
-#' @param max_steps Maximum number of steps for selection.
-#' @param return_step_results Boolean that if `TRUE` returns a list with the first
-#' argument the selection result, and second argument a list with step, operation,
-#' variable and its value.
-#' `measure_fn` measures and coefficient removed.
-#' @param do_not_remove String vector of variables to not be removed in the selection.
+#' @param max_steps The maximum number of steps for the variable selection process.
+#'   Defaults to 1000.
+#' @param return_step_results Logical. If TRUE, the function returns a list
+#'   containing the final fitted model and a log of the selection steps.
+#'   Defaults to FALSE.
+#' @param do_not_remove A character vector specifying variables that should not
+#'   be removed during backward selection. Defaults to "(Intercept)".
 #'
-#' @return the selected model if `return_step_results` is `False`.
-#' @export
+#' @return A fitted model with selected covariates based on the variable selection process.
+#'   If \code{return_step_results} is TRUE, a list containing the final fitted model
+#'   and a log of the selection steps is returned.
 #'
 #' @examples
+#' \dontrun{
 #' model <- lm(mpg ~ ., data = mtcars)
 #' select_covariates(model)
 #'
@@ -289,6 +275,9 @@ update_model_add <- function(model, values, threshold, data) {
 #'   direction = "both",
 #'   data = mtcars
 #' )
+#' }
+#'
+#' @export
 select_covariates <- function(model,
                               threshold = .15,
                               direction = "both",

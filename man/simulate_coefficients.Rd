@@ -2,30 +2,42 @@
 % Please edit documentation in R/sample_size.R
 \name{simulate_coefficients}
 \alias{simulate_coefficients}
-\title{Simulate Model Coefficients}
+\title{Simulate Model Coefficients and Covariance Matrix}
 \usage{
 simulate_coefficients(model, generator = NULL, n_sim = 100, ...)
 }
 \arguments{
-\item{model}{A model with [update()] method}
+\item{model}{A model with [update()], [simulate()], [fitted()],
+[coef()], [vcov()] methods.}
 
-\item{generator}{Optional custom generator function with 2 arguments (n, mu)}
+\item{generator}{An optional function 2 arguments (n, mu) to generate new response vectors.
+If NULL, the model's [simulate()] method is used. Otherwise, the generator
+function is used to simulate responses.}
 
-\item{n_sim}{Number of simulations}
+\item{n_sim}{The number of simulations to perform. Defaults to 100.}
 
 \item{...}{Extra arguments to [stats::update()]}
 }
 \value{
-A list with a list for coefficients and a list with vcov, each of length n_sim
+A list containing the simulated coefficients and covariance matrices.
+  The list includes components:
+\describe{
+  \item{coefs}{A list of coefficient vectors for each simulated response.}
+  \item{vcov}{A list of covariance matrices for each simulated response.}
+}
 }
 \description{
-Simulate Model Coefficients
+This function simulates coefficients and the covariance matrix for a fitted
+model. It allows for generating new response vectors either using
+the model's simulation method or a user-specified generator function. For each
+simulated response, the model is refitted, and the coefficients and covariance
+matrix of the refitted model are stored.
 }
 \examples{
+\dontrun{
 fit <- lm(mpg ~ cyl, data = mtcars)
-
 generator <- function(n, mu) rt(n, 3) + mu
-
 simulate_coefficients(fit, generator = generator)
+}
 
 }
