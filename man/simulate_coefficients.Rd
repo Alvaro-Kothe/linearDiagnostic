@@ -4,7 +4,7 @@
 \alias{simulate_coefficients}
 \title{Simulate Model Coefficients and Covariance Matrix}
 \usage{
-simulate_coefficients(model, generator = NULL, n_sim = 100, ...)
+simulate_coefficients(model, generator = NULL, ...)
 }
 \arguments{
 \item{model}{A model with [update()], [simulate()], [fitted()],
@@ -14,24 +14,20 @@ simulate_coefficients(model, generator = NULL, n_sim = 100, ...)
 If NULL, the model's [simulate()] method is used. Otherwise, the generator
 function is used to simulate responses.}
 
-\item{n_sim}{The number of simulations to perform. Defaults to 100.}
-
 \item{...}{Extra arguments to [stats::update()]}
 }
 \value{
 A list containing the simulated coefficients and covariance matrices.
   The list includes components:
 \describe{
-  \item{coefs}{A list of coefficient vectors for each simulated response.}
-  \item{vcov}{A list of covariance matrices for each simulated response.}
+  \item{coefs}{Coefficient vectors.}
+  \item{vcov}{Covariance matrices.}
 }
 }
 \description{
 This function simulates coefficients and the covariance matrix for a fitted
 model. It allows for generating new response vectors either using
-the model's simulation method or a user-specified generator function. For each
-simulated response, the model is refitted, and the coefficients and covariance
-matrix of the refitted model are stored.
+the model's simulation method or a user-specified generator function.
 }
 \examples{
 \dontrun{

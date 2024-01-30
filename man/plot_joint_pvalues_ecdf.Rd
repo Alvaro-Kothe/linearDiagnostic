@@ -24,7 +24,7 @@ plot_joint_pvalues_ecdf(
 If NULL, the model's [simulate()] method is used. Otherwise, the generator
 function is used to simulate responses.}
 
-\item{n_sim}{The number of simulations to perform. Defaults to 100.}
+\item{n_sim}{The number of simulations to perform.}
 
 \item{plot_uniform}{Logical. If TRUE, plot uniform distribution.}
 

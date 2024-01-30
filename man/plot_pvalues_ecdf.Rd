@@ -28,7 +28,7 @@ plot_pvalues_ecdf(
 If NULL, the model's [simulate()] method is used. Otherwise, the generator
 function is used to simulate responses.}
 
-\item{n_sim}{The number of simulations to perform. Defaults to 100.}
+\item{n_sim}{The number of simulations to perform.}
 
 \item{which}{A vector specifying the indices of coefficients to plot. Defaults
 to all coefficients.}
