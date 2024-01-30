@@ -1,13 +1,11 @@
-test_that("simulate_coefficients() returns a list of size `n_sim`", {
+test_that("simulate_coefficients() returns a list with two components", {
   x <- c(1, 3, 5, 7)
   y <- c(2, 3, 6, 9)
   fit <- lm(y ~ x)
 
-  simulation_result <- simulate_coefficients(fit, n_sim = 5)
+  simulation_result <- simulate_coefficients(fit)
 
   expect_named(simulation_result, c("coefs", "vcov"))
-  expect_length(simulation_result$coefs, 5)
-  expect_length(simulation_result$vcov, 5)
 })
 
 test_that("simulate_coefficients() coefs length is equal to number of parameters estimated", {
@@ -15,10 +13,10 @@ test_that("simulate_coefficients() coefs length is equal to number of parameters
   y <- c(2, 3, 6, 9)
   fit <- lm(y ~ x)
 
-  simulation_result <- simulate_coefficients(fit, n_sim = 1)
+  simulation_result <- simulate_coefficients(fit)
 
-  expect_length(simulation_result$coefs[[1]], 2)
-  expect_identical(dim(simulation_result$vcov[[1]]), c(2L, 2L))
+  expect_length(simulation_result$coefs, 2)
+  expect_identical(dim(simulation_result$vcov), c(2L, 2L))
 })
 
 test_that("set.seed works with simulate_coefficients()", {
@@ -27,10 +25,10 @@ test_that("set.seed works with simulate_coefficients()", {
   fit <- lm(y ~ x)
 
   set.seed(1)
-  simulation_result1 <- simulate_coefficients(fit, n_sim = 2)
+  simulation_result1 <- simulate_coefficients(fit)
 
   set.seed(1)
-  simulation_result2 <- simulate_coefficients(fit, n_sim = 2)
+  simulation_result2 <- simulate_coefficients(fit)
 
   expect_identical(simulation_result1, simulation_result2)
 })
@@ -41,11 +39,10 @@ test_that("simulate_coefficients() with generator yield different results", {
   fit <- lm(y ~ x)
 
   set.seed(1)
-  simulation_result1 <- simulate_coefficients(fit, n_sim = 2)
+  simulation_result1 <- simulate_coefficients(fit)
 
   set.seed(1)
   simulation_result2 <- simulate_coefficients(fit,
-    n_sim = 2,
     generator = function(n, mu) rgamma(n, mu)
   )
 
@@ -100,10 +97,10 @@ test_that("simulate_coefficients() works with poisson with offset", {
 
   suppressWarnings({
     fit <- glm(y ~ x + offset(offset_), family = poisson())
-    sim <- simulate_coefficients(fit, n_sim = 1)
+    sim <- simulate_coefficients(fit)
   })
 
-  expect_length(sim$coefs[[1]], 2)
+  expect_length(sim$coefs, 2)
 })
 
 test_that("plot_*_ecdf() errors when data is unavailable", {
@@ -171,14 +168,14 @@ test_that("simulate_coefficients() with custom method works", {
 
   fit <- foo(mpg ~ cyl, mtcars)
 
-  sim <- simulate_coefficients(fit, n_sim = 2)
+  sim <- simulate_coefficients(fit)
 
-  expect_identical(sim$coefs, list(c(NA, NA), c(NA, NA)))
+  expect_identical(sim$coefs, c(NA, NA))
 
-  expect_identical(sim$vcov, list(
-    matrix(NA, nrow = 2, ncol = 2),
+  expect_identical(
+    sim$vcov,
     matrix(NA, nrow = 2, ncol = 2)
-  ))
+  )
 
   rm(
     list = c("simulate.foo", "update.foo", "vcov.foo", "coef.foo"),

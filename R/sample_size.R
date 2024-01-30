@@ -2,23 +2,20 @@
 #'
 #' This function simulates coefficients and the covariance matrix for a fitted
 #' model. It allows for generating new response vectors either using
-#' the model's simulation method or a user-specified generator function. For each
-#' simulated response, the model is refitted, and the coefficients and covariance
-#' matrix of the refitted model are stored.
+#' the model's simulation method or a user-specified generator function.
 #'
 #' @param model A model with [update()], [simulate()], [fitted()],
 #' [coef()], [vcov()] methods.
 #' @param generator An optional function 2 arguments (n, mu) to generate new response vectors.
 #'   If NULL, the model's [simulate()] method is used. Otherwise, the generator
 #'   function is used to simulate responses.
-#' @param n_sim The number of simulations to perform. Defaults to 100.
 #' @param ... Extra arguments to [stats::update()]
 #'
 #' @return A list containing the simulated coefficients and covariance matrices.
 #'   The list includes components:
 #' \describe{
-#'   \item{coefs}{A list of coefficient vectors for each simulated response.}
-#'   \item{vcov}{A list of covariance matrices for each simulated response.}
+#'   \item{coefs}{Coefficient vectors.}
+#'   \item{vcov}{Covariance matrices.}
 #' }
 #'
 #' @examples
@@ -29,46 +26,35 @@
 #' }
 #'
 #' @export
-simulate_coefficients <- function(model, generator = NULL, n_sim = 100, ...) {
+simulate_coefficients <- function(model, generator = NULL, ...) {
   if (is.null(generator)) {
-    y_star <- stats::simulate(model, n_sim)
+    y_star <- stats::simulate(model)[[1]]
   } else {
     mu <- stats::fitted(model)
-    y_star <- replicate(n_sim,
-      generator(n = length(mu), mu = mu),
-      simplify = FALSE
-    )
-    names(y_star) <- paste0("sim_", seq_along(y_star))
+    y_star <- generator(n = length(mu), mu = mu)
   }
 
-  coefs <- list()
-  variances <- list()
+  formula_new_response <- stats::as.formula(
+    paste(enquote(y_star)[2], "~.", collapse = "")
+  )
 
-  for (i in seq_along(y_star)) {
-    y_ <- y_star[[i]]
+  refit <- stats::update(model, formula. = formula_new_response, ...)
 
-    formula_new_response <- stats::as.formula(
-      paste(enquote(y_)[2], "~.", collapse = "")
-    )
-
-    refit <- stats::update(model, formula. = formula_new_response, ...)
-
-    coefs[[i]] <- stats::coef(refit)
-    variances[[i]] <- stats::vcov(refit)
-  }
-
-  names(coefs) <- names(variances) <- names(y_star)
-
-  return(list(coefs = coefs, vcov = variances))
+  list(coefs = stats::coef(refit), vcov = stats::vcov(refit))
 }
 
-compute_statistic <- function(simulation_coefs, simulation_vcov, generator_coef) {
-  standard_coef <- sapply(seq_along(simulation_coefs), function(i) {
-    (simulation_coefs[[i]] - generator_coef) / sqrt(diag(simulation_vcov[[i]]))
-  })
-  colnames(standard_coef) <- names(simulation_coefs)
-
-  return(standard_coef)
+#' Compute Wald Statistic
+#'
+#' Compute Wald statistic for one coefficient using the simulation coefficient
+#' and standard error.
+#'
+#' @param coefs coefficient vector.
+#' @param vcov Covariance Matrix, should be a square matrix with p rows.
+#' @param generator_coef coefficient vector used to generate `coefs` and `vcov`.
+#'
+#' @return Wald statistic for each coefficient.
+compute_statistic <- function(coefs, vcov, generator_coef) {
+  (coefs - generator_coef) / sqrt(diag(vcov))
 }
 
 compute_p_values <- function(statistic, df = NULL) {
@@ -78,34 +64,108 @@ compute_p_values <- function(statistic, df = NULL) {
     p_values <- 2 * stats::pt(abs(statistic), df = df, lower.tail = FALSE)
   }
 
-  return(p_values)
+  p_values
 }
 
-compute_p_values_joint <- function(simulation_coefs, simulation_vcov, generator_coef) {
-  ginv_uses <- 0
-  chisq_stat <- sapply(seq_along(simulation_coefs), function(i) {
-    vcov_inv <- tryCatch(solve(simulation_vcov[[i]]),
-      error = function(e) {
-        ginv_uses <<- ginv_uses + 1
-        MASS::ginv(simulation_vcov[[i]])
-      }
-    )
-    dif_nul <- simulation_coefs[[i]] - generator_coef
-    t(dif_nul) %*%
-      vcov_inv %*%
-      dif_nul
-  })
+compute_p_values_joint <- function(coefs, vcov, generator_coef) {
+  vcov_inv <- tryCatch(solve(vcov),
+    error = function(e) {
+      warning("Couldn't inverse vcov and used `MASS::ginv` instead\n")
+      MASS::ginv(vcov)
+    }
+  )
+  dif_nul <- coefs - generator_coef
+  chisq_stat <- t(dif_nul) %*% vcov_inv %*% dif_nul
 
-  if (ginv_uses > 0) {
-    warning(
-      "Couldn't inverse vcov from ",
-      ginv_uses,
-      " simulations and used ginv instead\n"
-    )
-  }
   p_values <- 1 - stats::pchisq(chisq_stat, length(generator_coef))
 
   return(p_values)
+}
+
+#' Generate P-Values Matrix from Model Coefficient Simulations
+#'
+#' This function generates a matrix of p-values by simulating coefficients from
+#' a given model and computing test statistics for each simulation.
+#'
+#' @inheritParams simulate_coefficients
+#' @param n_sim The number of simulations to perform.
+#' @param df The degrees of freedom for the t-test statistic. If NULL, use
+#' Chisq-test statistic.
+#' @param ... Additional arguments to be passed to `simulate_coefficients`.
+#'
+#' @return A matrix where each column represents the p-values obtained from a simulation.
+#'
+#' @examples
+#' \dontrun{
+#' model <- lm(mpg ~ wt + hp, data = mtcars)
+#' generator <- function(n, mu) {
+#'   rt(n, 3) + mu
+#' }
+#' get_p_values_matrix(model, generator, n_sim = 100)
+#' }
+#'
+#' @export
+get_p_values_matrix <- function(model, generator, n_sim = 1000, df = NULL, ...) {
+  generator_coefs <- stats::coef(model)
+  result <- matrix(NA, nrow = length(generator_coefs), ncol = n_sim)
+  for (i in seq_len(n_sim)) {
+    simulation <- simulate_coefficients(
+      model = model, generator = generator,
+      ...
+    )
+    statistic <- compute_statistic(
+      coefs = simulation$coefs,
+      vcov = simulation$vcov,
+      generator_coef = generator_coefs
+    )
+    result[, i] <- compute_p_values(statistic = statistic, df = df)
+  }
+  result
+}
+
+#' Generate P-Values from Model Coefficient Simulations
+#'
+#' This function generates p-values by simulating coefficients from
+#' a given model and computing Wald statistics for each simulation.
+#'
+#' @inheritParams get_p_values_matrix
+#'
+#' @return A numeric vector containing the joint p-values obtained from each simulation.
+#'
+#' @examples
+#' \dontrun{
+#' model <- lm(mpg ~ wt + hp, data = mtcars)
+#' get_p_values_joint(model, n_sim = 100)
+#' }
+#'
+#' @export
+get_p_values_joint <- function(model, generator, n_sim = 1000, ...) {
+  generator_coefs <- stats::coef(model)
+  result <- double(n_sim)
+  ginv_uses <- 0
+  for (i in seq_len(n_sim)) {
+    simulation <- simulate_coefficients(
+      model = model, generator = generator,
+      ...
+    )
+    p_value <- withCallingHandlers(
+      compute_p_values_joint(
+        coefs = simulation$coefs,
+        vcov = simulation$vcov,
+        generator_coef = generator_coefs
+      ),
+      warning = function(warning) {
+        ginv_uses <<- ginv_uses + 1
+      }
+    )
+    result[i] <- p_value
+  }
+  if (ginv_uses > 0) {
+    warning(
+      "Couldn't inverse vcov from ", ginv_uses, " simulations and used ginv instead"
+    )
+  }
+  result
 }
 
 #' Plot Empirical Cumulative Distribution Function (ECDF) of p-values
@@ -115,7 +175,7 @@ compute_p_values_joint <- function(simulation_coefs, simulation_vcov, generator_
 #' model. The p-values are computed based on simulated coefficients
 #' and covariance matrices.
 #'
-#' @inheritParams simulate_coefficients
+#' @inheritParams get_p_values_matrix
 #' @param which A vector specifying the indices of coefficients to plot. Defaults
 #'   to all coefficients.
 #' @param caption A character vector providing plot captions for each coefficient.
@@ -151,25 +211,23 @@ plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
                               args_sim = list(), ...,
                               ask = prod(graphics::par("mfcol")) < length(which) && grDevices::dev.interactive(),
                               use_tstat = NULL) {
+  stopifnot(n_sim > 0)
   if (ask) {
     oask <- grDevices::devAskNewPage(TRUE)
     on.exit(grDevices::devAskNewPage(oask))
   }
-  simulation <- do.call(simulate_coefficients, c(
-    model = list(model), generator = list(generator),
-    n_sim = n_sim, args_sim
-  ))
-  statistic <- compute_statistic(
-    simulation_coefs = simulation$coefs,
-    simulation_vcov = simulation$vcov,
-    generator_coef = stats::coef(model)
-  )
 
   if (is.null(use_tstat)) {
     use_tstat <- colnames(summary(model)$coefficients)[3] == "t value"
   }
+
   df_ <- if (use_tstat) model$df.residual else NULL
-  p_values <- compute_p_values(statistic = statistic, df = df_)
+  get_p_values_main_args <- list(
+    model = model, generator = generator,
+    n_sim = n_sim, df = df_
+  )
+  get_p_values_args <- c(get_p_values_main_args, args_sim)
+  p_values <- do.call(get_p_values_matrix, get_p_values_args)
   for (coef_idx in seq_along(which)) {
     i <- which[coef_idx]
     p_value <- p_values[i, ]
@@ -213,15 +271,10 @@ plot_joint_pvalues_ecdf <- function(model,
                                     uniform_legend = TRUE,
                                     ylab = "Empirical cumulative distribution", xlab = "p-value",
                                     args_sim = list(), ...) {
-  simulation <- do.call(simulate_coefficients, c(
-    model = list(model), generator = list(generator),
-    n_sim = n_sim, args_sim
-  ))
-  p_value <- compute_p_values_joint(
-    simulation_coefs = simulation$coefs,
-    simulation_vcov = simulation$vcov,
-    generator_coef = stats::coef(model)
-  )
+  stopifnot(n_sim > 0)
+  get_p_values_main_args <- list(model = model, generator = generator, n_sim = n_sim)
+  get_p_values_args <- c(get_p_values_main_args, args_sim)
+  p_value <- do.call(get_p_values_joint, get_p_values_args)
   ecdf_ <- stats::ecdf(p_value)
   x <- seq(-0.01, 1.01, length.out = 201)
   plot(x, ecdf_(x), type = "l", ylab = ylab, xlab = xlab, ...)
