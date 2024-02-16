@@ -14,7 +14,7 @@ plot_cook(
 )
 }
 \arguments{
-\item{model}{Model with [cooks.distance()] method}
+\item{model}{Model with \code{\link[=cooks.distance]{cooks.distance()}} method}
 
 \item{n_highlights}{The number of observations with the highest Cook's
 distance to highlight on the plot. Defaults to 0 (no highlights).}
@@ -26,7 +26,7 @@ the standard deviation of Cook's distance. Defaults to FALSE.}
 
 \item{ylab}{The label for the y-axis. Defaults to "Cook's distance".}
 
-\item{...}{Further arguments for [graphics::plot()]}
+\item{...}{Further arguments for \code{\link[graphics:plot.default]{graphics::plot()}}}
 }
 \value{
 An invisible object representing Cook's distance values.

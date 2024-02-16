@@ -19,11 +19,11 @@ select_covariates(
 )
 }
 \arguments{
-\item{model}{A model with [stats::update()], [stats::coef()] methods.}
+\item{model}{A model with \code{\link[stats:update]{stats::update()}}, \code{\link[stats:coef]{stats::coef()}} methods.}
 
 \item{threshold}{Value threshold to remove variable. It can be a fixed value
-or a function. The variable is removed if `measure_fn(model) > threshold` and
-added if `measure_fn(model) <= threshold`.}
+or a function. The variable is removed if \code{measure_fn(model) > threshold} and
+added if \code{measure_fn(model) <= threshold}.}
 
 \item{direction}{The direction of variable selection. Options include "backward",
 "forward", or "both". Defaults to "both".}
@@ -32,18 +32,18 @@ added if `measure_fn(model) <= threshold`.}
 Defaults to all coefficients in the model.}
 
 \item{measure_fn}{Function with model as argument and returns values to be used by
-`threshold`. It can also compare two models, where during forward step
-it calls `measure_fn(candidate_model, current_selected_model)` and
-during backward step it calls `measure_fn(current_selected_model, candidate_model)`.
+\code{threshold}. It can also compare two models, where during forward step
+it calls \code{measure_fn(candidate_model, current_selected_model)} and
+during backward step it calls \code{measure_fn(current_selected_model, candidate_model)}.
 Defaults to the p-value from the summary of the coefficients.}
 
-\item{measure_one_at_time}{Boolean indicating to apply `measure_fn` to each
+\item{measure_one_at_time}{Boolean indicating to apply \code{measure_fn} to each
 variable individually during forward and backward steps.
-Set this option to `TRUE` if `measure_fn` returns an atomic value, for example if
-`measure_fn` is `AIC`.}
+Set this option to \code{TRUE} if \code{measure_fn} returns an atomic value, for example if
+\code{measure_fn} is \code{AIC}.}
 
 \item{minimize_only}{Logical indicating that during backward model update
-it should minimize the `measure_fn` instead of maximize it.}
+it should minimize the \code{measure_fn} instead of maximize it.}
 
 \item{max_steps}{The maximum number of steps for the variable selection process.
 Defaults to 1000.}
@@ -55,12 +55,12 @@ Defaults to FALSE.}
 \item{do_not_remove}{A character vector specifying variables that should not
 be removed during backward selection. Defaults to "(Intercept)".}
 
-\item{...}{Extra arguments to [stats::update()].}
+\item{...}{Extra arguments to \code{\link[stats:update]{stats::update()}}.}
 }
 \value{
 A fitted model with selected covariates based on the variable selection process.
-  If \code{return_step_results} is TRUE, a list containing the final fitted model
-  and a log of the selection steps is returned.
+If \code{return_step_results} is TRUE, a list containing the final fitted model
+and a log of the selection steps is returned.
 }
 \description{
 Select covariates

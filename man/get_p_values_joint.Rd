@@ -7,16 +7,16 @@
 get_p_values_joint(model, generator, n_sim = 1000, ...)
 }
 \arguments{
-\item{model}{A model with [update()], [simulate()], [fitted()],
-[coef()], [vcov()] methods.}
+\item{model}{A model with \code{\link[=update]{update()}}, \code{\link[=simulate]{simulate()}}, \code{\link[=fitted]{fitted()}},
+\code{\link[=coef]{coef()}}, \code{\link[=vcov]{vcov()}} methods.}
 
 \item{generator}{An optional function 2 arguments (n, mu) to generate new response vectors.
-If NULL, the model's [simulate()] method is used. Otherwise, the generator
+If NULL, the model's \code{\link[=simulate]{simulate()}} method is used. Otherwise, the generator
 function is used to simulate responses.}
 
 \item{n_sim}{The number of simulations to perform.}
 
-\item{...}{Additional arguments to be passed to `simulate_coefficients`.}
+\item{...}{Additional arguments to be passed to \code{simulate_coefficients}.}
 }
 \value{
 A numeric vector containing the joint p-values obtained from each simulation.

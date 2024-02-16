@@ -15,16 +15,16 @@ backward_selection(
 )
 }
 \arguments{
-\item{model}{A model with [stats::update()], [stats::coef()] methods.}
+\item{model}{A model with \code{\link[stats:update]{stats::update()}}, \code{\link[stats:coef]{stats::coef()}} methods.}
 
 \item{threshold}{Value threshold to remove variable. It can be a fixed value
-or a function. The variable is removed if `measure_fn(model) > threshold` and
-added if `measure_fn(model) <= threshold`.}
+or a function. The variable is removed if \code{measure_fn(model) > threshold} and
+added if \code{measure_fn(model) <= threshold}.}
 
 \item{measure_fn}{Function with model as argument and returns values to be used by
-`threshold`. It can also compare two models, where during forward step
-it calls `measure_fn(candidate_model, current_selected_model)` and
-during backward step it calls `measure_fn(current_selected_model, candidate_model)`.
+\code{threshold}. It can also compare two models, where during forward step
+it calls \code{measure_fn(candidate_model, current_selected_model)} and
+during backward step it calls \code{measure_fn(current_selected_model, candidate_model)}.
 Defaults to the p-value from the summary of the coefficients.}
 
 \item{max_steps}{The maximum number of steps for the variable selection process.
@@ -37,10 +37,10 @@ Defaults to FALSE.}
 \item{do_not_remove}{A character vector specifying variables that should not
 be removed during backward selection. Defaults to "(Intercept)".}
 
-\item{...}{Extra arguments to [stats::update()].}
+\item{...}{Extra arguments to \code{\link[stats:update]{stats::update()}}.}
 }
 \value{
-the selected model if `return_step_results` is `False`.
+the selected model if \code{return_step_results} is \code{False}.
 }
 \description{
 Select covariates backwise

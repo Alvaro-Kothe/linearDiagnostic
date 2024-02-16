@@ -13,27 +13,27 @@ plot_res_vs_linear_predictor(
 )
 }
 \arguments{
-\item{model}{Model with methods [predict()] or [fitted()]}
+\item{model}{Model with methods \code{\link[=predict]{predict()}} or \code{\link[=fitted]{fitted()}}}
 
 \item{residual_fn}{A function to calculate model residuals. The default is
-`stats::rstandard`.}
+\code{stats::rstandard}.}
 
 \item{xlab}{The label for the x-axis. Defaults to "Linear Predictor".}
 
 \item{ylab}{The label for the y-axis. Defaults to "Standardized deviance residuals".}
 
-\item{...}{Extra arguments to `residual_fn` and [plot()].}
+\item{...}{Extra arguments to \code{residual_fn} and \code{\link[=plot]{plot()}}.}
 }
 \value{
 An invisible list containing the linear predictor (x) and standardized
-  deviance residuals (y).
+deviance residuals (y).
 }
 \description{
 Plot Residuals against Linear Predictor
 }
 \details{
-If the model was fitted using the [glm()] function, it will use the [predict()]
-method with `type = link`, otherwise, it will use the [fitted()] method.
+If the model was fitted using the \code{\link[=glm]{glm()}} function, it will use the \code{\link[=predict]{predict()}}
+method with \code{type = link}, otherwise, it will use the \code{\link[=fitted]{fitted()}} method.
 }
 \examples{
 \dontrun{

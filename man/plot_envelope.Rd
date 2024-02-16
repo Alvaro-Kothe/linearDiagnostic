@@ -12,24 +12,24 @@ plot_envelope(
 )
 }
 \arguments{
-\item{model}{A model with [stats::update()] and [stats::simulate()] methods.}
+\item{model}{A model with \code{\link[stats:update]{stats::update()}} and \code{\link[stats:simulate]{stats::simulate()}} methods.}
 
 \item{xlab}{The label for the x-axis. Defaults to "Expected quantiles".}
 
 \item{ylab}{The label for the y-axis. Defaults to "Observed quantiles".}
 
-\item{...}{Additional arguments for [envelope_measures()]}
+\item{...}{Additional arguments for \code{\link[=envelope_measures]{envelope_measures()}}}
 }
 \value{
 A list containing the following components:
 \describe{
-  \item{expected}{A vector of expected quantiles from a normal distribution.}
-  \item{observed}{A vector of observed quantiles from the model residuals.}
-  \item{outside}{A logical vector indicating whether each observation falls
-  outside the constructed envelope bounds.}
-  \item{lower}{The lower bounds of the envelope for each observation.}
-  \item{med}{The median bounds of the envelope for each observation.}
-  \item{upper}{The upper bounds of the envelope for each observation.}
+\item{expected}{A vector of expected quantiles from a normal distribution.}
+\item{observed}{A vector of observed quantiles from the model residuals.}
+\item{outside}{A logical vector indicating whether each observation falls
+outside the constructed envelope bounds.}
+\item{lower}{The lower bounds of the envelope for each observation.}
+\item{med}{The median bounds of the envelope for each observation.}
+\item{upper}{The upper bounds of the envelope for each observation.}
 }
 }
 \description{
