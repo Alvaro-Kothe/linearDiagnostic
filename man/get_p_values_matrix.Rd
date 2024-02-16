@@ -4,15 +4,11 @@
 \alias{get_p_values_matrix}
 \title{Generate P-Values Matrix from Model Coefficient Simulations}
 \usage{
-get_p_values_matrix(model, generator, n_sim = 1000, df = NULL, ...)
+get_p_values_matrix(model, n_sim = 1000, df = NULL, ...)
 }
 \arguments{
 \item{model}{A model with \code{\link[=update]{update()}}, \code{\link[=simulate]{simulate()}}, \code{\link[=fitted]{fitted()}},
 \code{\link[=coef]{coef()}}, \code{\link[=vcov]{vcov()}} methods.}
-
-\item{generator}{An optional function 2 arguments (n, mu) to generate new response vectors.
-If NULL, the model's \code{\link[=simulate]{simulate()}} method is used. Otherwise, the generator
-function is used to simulate responses.}
 
 \item{n_sim}{The number of simulations to perform.}
 
@@ -34,7 +30,7 @@ model <- lm(mpg ~ wt + hp, data = mtcars)
 generator <- function(n, mu) {
   rt(n, 3) + mu
 }
-get_p_values_matrix(model, generator, n_sim = 100)
+get_p_values_matrix(model, generator = generator, n_sim = 100)
 }
 
 }

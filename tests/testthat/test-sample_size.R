@@ -56,16 +56,29 @@ test_that("plot_*_pvalues_ecdf work", {
   mpg_fit <- lm(mpg ~ ., data = mtcars)
 
   set.seed(1)
-  expect_no_error(plot_joint_pvalues_ecdf(fit, n_sim = 10))
-  expect_no_error(plot_pvalues_ecdf(fit, n_sim = 10))
-  expect_no_error(plot_pvalues_ecdf(fit, n_sim = 10, ask = TRUE))
-  expect_no_error(plot_pvalues_ecdf(fit, n_sim = 10, ask = FALSE))
-  expect_no_error(plot_joint_pvalues_ecdf(fit, n_sim = 10, plot_uniform = TRUE, uniform_legend = FALSE))
-  expect_no_error(plot_joint_pvalues_ecdf(fit, n_sim = 10, plot_uniform = TRUE))
-  expect_no_error(plot_joint_pvalues_ecdf(fit, n_sim = 10, plot_uniform = FALSE))
-  expect_no_error(plot_pvalues_ecdf(fit, n_sim = 10, plot_uniform = TRUE))
-  expect_no_error(plot_pvalues_ecdf(fit, n_sim = 10, plot_uniform = TRUE, uniform_legend = FALSE))
-  expect_no_error(plot_pvalues_ecdf(fit, n_sim = 10, plot_uniform = FALSE))
+  expect_no_error(plot_joint_pvalues_ecdf(fit, args_sim = list(n_sim = 10)))
+  suppressWarnings(
+    expect_warning(plot_joint_pvalues_ecdf(fit,
+      args_sim = list(n_sim = 5, this_argument_doesnt_exist = NULL)
+    ))
+  )
+  expect_no_error(plot_pvalues_ecdf(fit, args_sim = list(n_sim = 10)))
+  expect_no_error(plot_pvalues_ecdf(fit, args_sim = list(n_sim = 10), ask = TRUE))
+  expect_no_error(plot_pvalues_ecdf(fit, args_sim = list(n_sim = 10), ask = FALSE))
+  expect_no_error(plot_joint_pvalues_ecdf(fit,
+    args_sim = list(n_sim = 10),
+    plot_uniform = TRUE, uniform_legend = FALSE
+  ))
+  expect_no_error(plot_joint_pvalues_ecdf(fit, args_sim = list(n_sim = 10), plot_uniform = TRUE))
+  expect_no_error(plot_joint_pvalues_ecdf(fit, args_sim = list(n_sim = 10), plot_uniform = FALSE))
+  expect_no_error(plot_pvalues_ecdf(fit, args_sim = list(n_sim = 10), plot_uniform = TRUE))
+  expect_no_error(plot_pvalues_ecdf(fit, args_sim = list(n_sim = 10), plot_uniform = TRUE, uniform_legend = FALSE))
+  expect_no_error(plot_pvalues_ecdf(fit, args_sim = list(n_sim = 10), plot_uniform = FALSE))
+  expect_no_error(plot_pvalues_ecdf(fit,
+    args_sim =
+      list(n_sim = 2, generator = function(n, mu) rt(n, 3) + mu),
+    plot_uniform = FALSE
+  ))
 })
 
 test_that("plot_*_pvalues throw warning with singular matrix", {
@@ -83,7 +96,7 @@ test_that("plot_*_pvalues throw warning with singular matrix", {
     fit <- glm(y ~ model_matrix + 1, family = poisson())
 
     expect_warning(
-      plot_joint_pvalues_ecdf(fit, n_sim = 10),
+      plot_joint_pvalues_ecdf(fit, args_sim = list(n_sim = 10)),
       "Couldn't inverse vcov from \\d+ simulations and used ginv instead"
     )
   })
@@ -111,10 +124,14 @@ test_that("plot_*_ecdf() errors when data is unavailable", {
   fit <- lm(y ~ x, data = df)
   rm(df)
 
-  expect_error(plot_joint_pvalues_ecdf(fit, n_sim = 10))
-  expect_error(plot_pvalues_ecdf(fit, n_sim = 10))
-  expect_no_error(plot_joint_pvalues_ecdf(fit, n_sim = 10, args_sim = list(data = model.frame(fit))))
-  expect_no_error(plot_pvalues_ecdf(fit, n_sim = 10, args_sim = list(data = model.frame(fit))))
+  expect_error(plot_joint_pvalues_ecdf(fit, args_sim = list(n_sim = 10)))
+  expect_error(plot_pvalues_ecdf(fit, args_sim = list(n_sim = 10)))
+  expect_no_error(plot_joint_pvalues_ecdf(fit, args_sim = list(n_sim = 10, data = model.frame(fit))))
+  expect_no_error(plot_pvalues_ecdf(fit, args_sim = list(n_sim = 10, data = model.frame(fit))))
+  expect_no_error(plot_pvalues_ecdf(fit,
+    use_tstat = FALSE,
+    args_sim = list(n_sim = 10, data = model.frame(fit))
+  ))
 })
 
 
