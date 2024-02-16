@@ -17,11 +17,11 @@ plot_joint_pvalues_ecdf(
 )
 }
 \arguments{
-\item{model}{A model with [update()], [simulate()], [fitted()],
-[coef()], [vcov()] methods.}
+\item{model}{A model with \code{\link[=update]{update()}}, \code{\link[=simulate]{simulate()}}, \code{\link[=fitted]{fitted()}},
+\code{\link[=coef]{coef()}}, \code{\link[=vcov]{vcov()}} methods.}
 
 \item{generator}{An optional function 2 arguments (n, mu) to generate new response vectors.
-If NULL, the model's [simulate()] method is used. Otherwise, the generator
+If NULL, the model's \code{\link[=simulate]{simulate()}} method is used. Otherwise, the generator
 function is used to simulate responses.}
 
 \item{n_sim}{The number of simulations to perform.}
@@ -35,9 +35,9 @@ distinguish between the p-value and U(0, 1) curves. Defaults to TRUE.}
 
 \item{xlab}{The label for the x-axis. Defaults to "p-value".}
 
-\item{args_sim}{Extra arguments passed to [simulate_coefficients()].}
+\item{args_sim}{Extra arguments passed to \code{\link[=simulate_coefficients]{simulate_coefficients()}}.}
 
-\item{...}{Extra arguments from [plot()]}
+\item{...}{Extra arguments from \code{\link[=plot]{plot()}}}
 }
 \value{
 A vector of joint p-values for all coefficients.

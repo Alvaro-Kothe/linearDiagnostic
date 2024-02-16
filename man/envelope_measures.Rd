@@ -13,10 +13,10 @@ envelope_measures(
 )
 }
 \arguments{
-\item{model}{A model with [stats::update()] and [stats::simulate()] methods.}
+\item{model}{A model with \code{\link[stats:update]{stats::update()}} and \code{\link[stats:simulate]{stats::simulate()}} methods.}
 
 \item{residual_fn}{A function to calculate model residuals. The default is
-`stats::rstudent` for studentized residuals.}
+\code{stats::rstudent} for studentized residuals.}
 
 \item{alpha}{The significance level for constructing the envelope bounds.
 Defaults to 0.05.}
@@ -24,18 +24,18 @@ Defaults to 0.05.}
 \item{n_sim}{The number of simulations to perform for envelope construction.
 Defaults to 100.}
 
-\item{...}{Extra arguments to [stats::update()]}
+\item{...}{Extra arguments to \code{\link[stats:update]{stats::update()}}}
 }
 \value{
 A list containing the following components:
 \describe{
-  \item{expected}{A vector of expected quantiles from a normal distribution.}
-  \item{observed}{A vector of observed quantiles from the model residuals.}
-  \item{outside}{A logical vector indicating whether each observation falls
-  outside the constructed envelope bounds.}
-  \item{lower}{The lower bounds of the envelope for each observation.}
-  \item{med}{The median bounds of the envelope for each observation.}
-  \item{upper}{The upper bounds of the envelope for each observation.}
+\item{expected}{A vector of expected quantiles from a normal distribution.}
+\item{observed}{A vector of observed quantiles from the model residuals.}
+\item{outside}{A logical vector indicating whether each observation falls
+outside the constructed envelope bounds.}
+\item{lower}{The lower bounds of the envelope for each observation.}
+\item{med}{The median bounds of the envelope for each observation.}
+\item{upper}{The upper bounds of the envelope for each observation.}
 }
 }
 \description{

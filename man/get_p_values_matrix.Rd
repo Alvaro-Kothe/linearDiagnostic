@@ -7,11 +7,11 @@
 get_p_values_matrix(model, generator, n_sim = 1000, df = NULL, ...)
 }
 \arguments{
-\item{model}{A model with [update()], [simulate()], [fitted()],
-[coef()], [vcov()] methods.}
+\item{model}{A model with \code{\link[=update]{update()}}, \code{\link[=simulate]{simulate()}}, \code{\link[=fitted]{fitted()}},
+\code{\link[=coef]{coef()}}, \code{\link[=vcov]{vcov()}} methods.}
 
 \item{generator}{An optional function 2 arguments (n, mu) to generate new response vectors.
-If NULL, the model's [simulate()] method is used. Otherwise, the generator
+If NULL, the model's \code{\link[=simulate]{simulate()}} method is used. Otherwise, the generator
 function is used to simulate responses.}
 
 \item{n_sim}{The number of simulations to perform.}
@@ -19,7 +19,7 @@ function is used to simulate responses.}
 \item{df}{The degrees of freedom for the t-test statistic. If NULL, use
 Chisq-test statistic.}
 
-\item{...}{Additional arguments to be passed to `simulate_coefficients`.}
+\item{...}{Additional arguments to be passed to \code{simulate_coefficients}.}
 }
 \value{
 A matrix where each column represents the p-values obtained from a simulation.

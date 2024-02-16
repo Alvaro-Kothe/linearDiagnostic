@@ -11,7 +11,7 @@ compute_statistic(coefs, vcov, generator_coef)
 
 \item{vcov}{Covariance Matrix, should be a square matrix with p rows.}
 
-\item{generator_coef}{coefficient vector used to generate `coefs` and `vcov`.}
+\item{generator_coef}{coefficient vector used to generate \code{coefs} and \code{vcov}.}
 }
 \value{
 Wald statistic for each coefficient.
