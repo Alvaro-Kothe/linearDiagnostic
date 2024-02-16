@@ -101,16 +101,16 @@ compute_p_values_joint <- function(coefs, vcov, generator_coef) {
 #' generator <- function(n, mu) {
 #'   rt(n, 3) + mu
 #' }
-#' get_p_values_matrix(model, generator, n_sim = 100)
+#' get_p_values_matrix(model, generator = generator, n_sim = 100)
 #' }
 #'
 #' @export
-get_p_values_matrix <- function(model, generator, n_sim = 1000, df = NULL, ...) {
+get_p_values_matrix <- function(model, n_sim = 1000, df = NULL, ...) {
   generator_coefs <- stats::coef(model)
   result <- matrix(NA, nrow = length(generator_coefs), ncol = n_sim)
   for (i in seq_len(n_sim)) {
     simulation <- simulate_coefficients(
-      model = model, generator = generator,
+      model = model,
       ...
     )
     statistic <- compute_statistic(
@@ -139,13 +139,13 @@ get_p_values_matrix <- function(model, generator, n_sim = 1000, df = NULL, ...) 
 #' }
 #'
 #' @export
-get_p_values_joint <- function(model, generator, n_sim = 1000, ...) {
+get_p_values_joint <- function(model, n_sim = 1000, ...) {
   generator_coefs <- stats::coef(model)
   result <- double(n_sim)
   ginv_uses <- 0
   for (i in seq_len(n_sim)) {
     simulation <- simulate_coefficients(
-      model = model, generator = generator,
+      model = model,
       ...
     )
     p_value <- withCallingHandlers(
@@ -202,7 +202,7 @@ get_p_values_joint <- function(model, generator, n_sim = 1000, ...) {
 #' plot_pvalues_ecdf(fit)
 #' }
 #' @export
-plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
+plot_pvalues_ecdf <- function(model,
                               which = seq_along(stats::coef(model)),
                               caption = paste("ECDF of", names(stats::coef(model))[which]),
                               plot_uniform = TRUE,
@@ -211,7 +211,6 @@ plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
                               args_sim = list(), ...,
                               ask = prod(graphics::par("mfcol")) < length(which) && grDevices::dev.interactive(),
                               use_tstat = NULL) {
-  stopifnot(n_sim > 0)
   if (ask) {
     oask <- grDevices::devAskNewPage(TRUE)
     on.exit(grDevices::devAskNewPage(oask))
@@ -223,8 +222,7 @@ plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
 
   df_ <- if (use_tstat) model$df.residual else NULL
   get_p_values_main_args <- list(
-    model = model, generator = generator,
-    n_sim = n_sim, df = df_
+    model = model, df = df_
   )
   get_p_values_args <- c(get_p_values_main_args, args_sim)
   p_values <- do.call(get_p_values_matrix, get_p_values_args)
@@ -266,13 +264,11 @@ plot_pvalues_ecdf <- function(model, generator = NULL, n_sim = 1000,
 #' }
 #' @export
 plot_joint_pvalues_ecdf <- function(model,
-                                    generator = NULL, n_sim = 1000,
                                     plot_uniform = TRUE,
                                     uniform_legend = TRUE,
                                     ylab = "Empirical cumulative distribution", xlab = "p-value",
                                     args_sim = list(), ...) {
-  stopifnot(n_sim > 0)
-  get_p_values_main_args <- list(model = model, generator = generator, n_sim = n_sim)
+  get_p_values_main_args <- list(model = model)
   get_p_values_args <- c(get_p_values_main_args, args_sim)
   p_value <- do.call(get_p_values_joint, get_p_values_args)
   ecdf_ <- stats::ecdf(p_value)

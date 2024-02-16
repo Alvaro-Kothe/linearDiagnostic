@@ -6,8 +6,6 @@
 \usage{
 plot_pvalues_ecdf(
   model,
-  generator = NULL,
-  n_sim = 1000,
   which = seq_along(stats::coef(model)),
   caption = paste("ECDF of", names(stats::coef(model))[which]),
   plot_uniform = TRUE,
@@ -23,12 +21,6 @@ plot_pvalues_ecdf(
 \arguments{
 \item{model}{A model with \code{\link[=update]{update()}}, \code{\link[=simulate]{simulate()}}, \code{\link[=fitted]{fitted()}},
 \code{\link[=coef]{coef()}}, \code{\link[=vcov]{vcov()}} methods.}
-
-\item{generator}{An optional function 2 arguments (n, mu) to generate new response vectors.
-If NULL, the model's \code{\link[=simulate]{simulate()}} method is used. Otherwise, the generator
-function is used to simulate responses.}
-
-\item{n_sim}{The number of simulations to perform.}
 
 \item{which}{A vector specifying the indices of coefficients to plot. Defaults
 to all coefficients.}

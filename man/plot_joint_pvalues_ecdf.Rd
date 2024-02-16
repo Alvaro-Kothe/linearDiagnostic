@@ -6,8 +6,6 @@
 \usage{
 plot_joint_pvalues_ecdf(
   model,
-  generator = NULL,
-  n_sim = 1000,
   plot_uniform = TRUE,
   uniform_legend = TRUE,
   ylab = "Empirical cumulative distribution",
@@ -19,12 +17,6 @@ plot_joint_pvalues_ecdf(
 \arguments{
 \item{model}{A model with \code{\link[=update]{update()}}, \code{\link[=simulate]{simulate()}}, \code{\link[=fitted]{fitted()}},
 \code{\link[=coef]{coef()}}, \code{\link[=vcov]{vcov()}} methods.}
-
-\item{generator}{An optional function 2 arguments (n, mu) to generate new response vectors.
-If NULL, the model's \code{\link[=simulate]{simulate()}} method is used. Otherwise, the generator
-function is used to simulate responses.}
-
-\item{n_sim}{The number of simulations to perform.}
 
 \item{plot_uniform}{Logical. If TRUE, plot uniform distribution.}
 
