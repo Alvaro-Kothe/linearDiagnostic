@@ -27,7 +27,7 @@ distinguish between the p-value and U(0, 1) curves. Defaults to TRUE.}
 
 \item{xlab}{The label for the x-axis. Defaults to "p-value".}
 
-\item{args_sim}{Extra arguments passed to \code{\link[=simulate_coefficients]{simulate_coefficients()}}.}
+\item{args_sim}{Extra arguments passed to \code{\link[=get_p_values_joint]{get_p_values_joint()}}.}
 
 \item{...}{Extra arguments from \code{\link[=plot]{plot()}}}
 }

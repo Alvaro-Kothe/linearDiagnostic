@@ -89,8 +89,9 @@ compute_p_values_joint <- function(coefs, vcov, generator_coef) {
 #'
 #' @inheritParams simulate_coefficients
 #' @param n_sim The number of simulations to perform.
-#' @param df The degrees of freedom for the t-test statistic. If NULL, use
-#' Chisq-test statistic.
+#' @param use_tstat Logical. If TRUE, the t-statistic is used for computing p-values.
+#'   If FALSE, the z-statistic is used. If NULL, the default is determined based on
+#'   the presence of the "t value" column in the summary of the model coefficients.
 #' @param ... Additional arguments to be passed to `simulate_coefficients`.
 #'
 #' @return A matrix where each column represents the p-values obtained from a simulation.
@@ -105,9 +106,14 @@ compute_p_values_joint <- function(coefs, vcov, generator_coef) {
 #' }
 #'
 #' @export
-get_p_values_matrix <- function(model, n_sim = 1000, df = NULL, ...) {
+get_p_values_matrix <- function(model, n_sim = 1000, use_tstat = NULL, ...) {
   generator_coefs <- stats::coef(model)
   result <- matrix(NA, nrow = length(generator_coefs), ncol = n_sim)
+  if (is.null(use_tstat)) {
+    use_tstat <- colnames(summary(model)$coefficients)[3] == "t value"
+  }
+
+  df <- if (use_tstat) model$df.residual else NULL
   for (i in seq_len(n_sim)) {
     simulation <- simulate_coefficients(
       model = model,
@@ -184,14 +190,11 @@ get_p_values_joint <- function(model, n_sim = 1000, ...) {
 #'   distinguish between the p-value and U(0, 1) curves. Defaults to TRUE.
 #' @param ylab The label for the y-axis. Defaults to "Empirical cumulative distribution".
 #' @param xlab The label for the x-axis. Defaults to "p-value".
-#' @param args_sim Extra arguments passed to [simulate_coefficients()].
+#' @param args_sim Extra arguments passed to [get_p_values_matrix()].
 #' @param ... Extra arguments from [plot()]
 #' @param ask Logical. If TRUE, the user is prompted before each plot. Defaults
 #'   to TRUE if in an interactive session and the number of plots is greater
 #'   than the available space; otherwise, FALSE.
-#' @param use_tstat Logical. If TRUE, the t-statistic is used for computing p-values.
-#'   If FALSE, the z-statistic is used. If NULL, the default is determined based on
-#'   the presence of the "t value" column in the summary of the model coefficients.
 #'
 #' @return Matrix with p_values obtained from the simulations.
 #'
@@ -209,21 +212,13 @@ plot_pvalues_ecdf <- function(model,
                               uniform_legend = TRUE,
                               ylab = "Empirical cumulative distribution", xlab = "p-value",
                               args_sim = list(), ...,
-                              ask = prod(graphics::par("mfcol")) < length(which) && grDevices::dev.interactive(),
-                              use_tstat = NULL) {
+                              ask = prod(graphics::par("mfcol")) < length(which) && grDevices::dev.interactive()) {
   if (ask) {
     oask <- grDevices::devAskNewPage(TRUE)
     on.exit(grDevices::devAskNewPage(oask))
   }
 
-  if (is.null(use_tstat)) {
-    use_tstat <- colnames(summary(model)$coefficients)[3] == "t value"
-  }
-
-  df_ <- if (use_tstat) model$df.residual else NULL
-  get_p_values_main_args <- list(
-    model = model, df = df_
-  )
+  get_p_values_main_args <- list(model = model)
   get_p_values_args <- c(get_p_values_main_args, args_sim)
   p_values <- do.call(get_p_values_matrix, get_p_values_args)
   for (coef_idx in seq_along(which)) {
@@ -254,6 +249,7 @@ plot_pvalues_ecdf <- function(model,
 #' matrices.
 #'
 #' @inheritParams plot_pvalues_ecdf
+#' @param args_sim Extra arguments passed to [get_p_values_joint()].
 #'
 #' @return A vector of joint p-values for all coefficients.
 #'
