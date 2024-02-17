@@ -14,8 +14,7 @@ plot_pvalues_ecdf(
   xlab = "p-value",
   args_sim = list(),
   ...,
-  ask = prod(graphics::par("mfcol")) < length(which) && grDevices::dev.interactive(),
-  use_tstat = NULL
+  ask = prod(graphics::par("mfcol")) < length(which) && grDevices::dev.interactive()
 )
 }
 \arguments{
@@ -36,17 +35,13 @@ distinguish between the p-value and U(0, 1) curves. Defaults to TRUE.}
 
 \item{xlab}{The label for the x-axis. Defaults to "p-value".}
 
-\item{args_sim}{Extra arguments passed to \code{\link[=simulate_coefficients]{simulate_coefficients()}}.}
+\item{args_sim}{Extra arguments passed to \code{\link[=get_p_values_matrix]{get_p_values_matrix()}}.}
 
 \item{...}{Extra arguments from \code{\link[=plot]{plot()}}}
 
 \item{ask}{Logical. If TRUE, the user is prompted before each plot. Defaults
 to TRUE if in an interactive session and the number of plots is greater
 than the available space; otherwise, FALSE.}
-
-\item{use_tstat}{Logical. If TRUE, the t-statistic is used for computing p-values.
-If FALSE, the z-statistic is used. If NULL, the default is determined based on
-the presence of the "t value" column in the summary of the model coefficients.}
 }
 \value{
 Matrix with p_values obtained from the simulations.
