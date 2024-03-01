@@ -169,3 +169,13 @@ test_that("update_model_*() returns expected output", {
 
   expect_identical(updated_add$added_var, c(hp = .1))
 })
+
+test_that("selection errors with measure_fn with 0 or 3+ arguments", {
+  fit <- lm(mpg ~ ., data = mtcars)
+  expect_error(select_covariates(fit, measure_fn = function() {
+    42
+  }))
+  expect_error(select_covariates(fit, measure_one_at_time = TRUE, measure_fn = function(a, b, c) {
+    42
+  }))
+})
