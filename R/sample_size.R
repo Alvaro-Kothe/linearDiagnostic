@@ -90,6 +90,9 @@ compute_p_values_joint <- function(coefs, vcov, generator_coef) {
 #' @param use_tstat Logical. If TRUE, the t-statistic is used for computing p-values.
 #'   If FALSE, the z-statistic is used. If NULL, the default is determined based on
 #'   the presence of the "t value" column in the summary of the model coefficients.
+#' @param test_coefficients Numeric vector. A vector with values to be used to compute
+#'   the test statistic. It should be the coefficients that was used to compute
+#'   the fitted values of the response. If `NULL` defaults to coef(model)
 #' @param ... Additional arguments to be passed to `simulate_coefficients`.
 #'
 #' @return A matrix where each column represents the p-values obtained from a simulation.
@@ -104,9 +107,12 @@ compute_p_values_joint <- function(coefs, vcov, generator_coef) {
 #' }
 #'
 #' @export
-get_p_values_matrix <- function(model, n_sim = 1000, use_tstat = NULL, ...) {
-  generator_coefs <- stats::coef(model)
-  result <- matrix(NA, nrow = length(generator_coefs), ncol = n_sim)
+get_p_values_matrix <- function(model, n_sim = 1000, use_tstat = NULL,
+                                test_coefficients = NULL, ...) {
+  if (is.null(test_coefficients)) {
+    test_coefficients <- stats::coef(model)
+  }
+  result <- matrix(NA, nrow = length(test_coefficients), ncol = n_sim)
   if (is.null(use_tstat)) {
     use_tstat <- colnames(summary(model)$coefficients)[3] == "t value"
   }
@@ -120,7 +126,7 @@ get_p_values_matrix <- function(model, n_sim = 1000, use_tstat = NULL, ...) {
     statistic <- compute_statistic(
       coefs = simulation$coefs,
       vcov = simulation$vcov,
-      generator_coef = generator_coefs
+      generator_coef = test_coefficients
     )
     result[, i] <- compute_p_values(statistic = statistic, df = df)
   }
@@ -143,10 +149,12 @@ get_p_values_matrix <- function(model, n_sim = 1000, use_tstat = NULL, ...) {
 #' }
 #'
 #' @export
-get_p_values_joint <- function(model, n_sim = 1000, ...) {
-  generator_coefs <- stats::coef(model)
+get_p_values_joint <- function(model, n_sim = 1000, test_coefficients = NULL, ...) {
   result <- double(n_sim)
   ginv_uses <- 0
+  if (is.null(test_coefficients)) {
+    test_coefficients <- stats::coef(model)
+  }
   for (i in seq_len(n_sim)) {
     simulation <- simulate_coefficients(
       model = model,
@@ -156,7 +164,7 @@ get_p_values_joint <- function(model, n_sim = 1000, ...) {
       compute_p_values_joint(
         coefs = simulation$coefs,
         vcov = simulation$vcov,
-        generator_coef = generator_coefs
+        generator_coef = test_coefficients
       ),
       warning = function(warning) {
         ginv_uses <<- ginv_uses + 1

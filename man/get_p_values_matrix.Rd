@@ -4,7 +4,13 @@
 \alias{get_p_values_matrix}
 \title{Generate P-Values Matrix from Model Coefficient Simulations}
 \usage{
-get_p_values_matrix(model, n_sim = 1000, use_tstat = NULL, ...)
+get_p_values_matrix(
+  model,
+  n_sim = 1000,
+  use_tstat = NULL,
+  test_coefficients = NULL,
+  ...
+)
 }
 \arguments{
 \item{model}{A model with \code{\link[=update]{update()}}, \code{\link[=simulate]{simulate()}}, \code{\link[=fitted]{fitted()}},
@@ -15,6 +21,10 @@ get_p_values_matrix(model, n_sim = 1000, use_tstat = NULL, ...)
 \item{use_tstat}{Logical. If TRUE, the t-statistic is used for computing p-values.
 If FALSE, the z-statistic is used. If NULL, the default is determined based on
 the presence of the "t value" column in the summary of the model coefficients.}
+
+\item{test_coefficients}{Numeric vector. A vector with values to be used to compute
+the test statistic. It should be the coefficients that was used to compute
+the fitted values of the response. If \code{NULL} defaults to coef(model)}
 
 \item{...}{Additional arguments to be passed to \code{simulate_coefficients}.}
 }

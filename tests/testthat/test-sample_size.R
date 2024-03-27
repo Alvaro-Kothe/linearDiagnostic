@@ -23,6 +23,22 @@ test_that("use_tstat yield different results", {
   expect_false(identical(matrix_true, matrix_false))
 })
 
+test_that("test_coefficients generate different results", {
+  x <- c(1, 3, 5, 7)
+  y <- c(2, 3, 6, 9)
+  fit <- lm(y ~ x)
+  set.seed(1)
+  matrix_regular <- get_p_values_matrix(fit, n_sim = 10)
+
+  test_coefs <- c(1000000, 1000000)
+  set.seed(1)
+  matrix_test_coefs <- get_p_values_matrix(fit, n_sim = 10, test_coefficients = test_coefs)
+
+  # Test if all elements are close to 0, as test_coefs were very high
+  expect_true(all(matrix_test_coefs < 1e-8))
+  expect_false(identical(matrix_regular, matrix_test_coefs))
+})
+
 test_that("simulate_coefficients() coefs length is equal to number of parameters estimated", {
   x <- c(1, 3, 5, 7)
   y <- c(2, 3, 6, 9)
