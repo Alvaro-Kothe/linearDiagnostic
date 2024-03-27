@@ -27,16 +27,14 @@
 #'
 #' @export
 simulate_coefficients <- function(model, generator = NULL, ...) {
-  if (is.null(generator)) {
-    y_star <- stats::simulate(model)[[1]]
+  y_star <- if (is.null(generator)) {
+    stats::simulate(model)[[1]]
   } else {
     mu <- stats::fitted(model)
-    y_star <- generator(n = length(mu), mu = mu)
+    generator(n = length(mu), mu = mu)
   }
 
-  formula_new_response <- stats::as.formula(
-    paste(enquote(y_star)[2], "~.", collapse = "")
-  )
+  formula_new_response <- change_reponse_formula(y_star)
 
   refit <- stats::update(model, formula. = formula_new_response, ...)
 

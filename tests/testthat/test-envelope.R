@@ -34,3 +34,10 @@ test_that("envelope_measures() detects incorrect fit", {
 test_that("plot_envelope() runs without errors", {
   expect_no_error(plot_envelope(lm(c(1, 5) ~ 1)))
 })
+
+test_that("plot_envelope() is compatible with models using cbind", {
+  m <- c(1, 4, 10, 30)
+  y <- c(0, 2, 5, 15)
+  fit <- glm(cbind(y, m - y) ~ 1, family = binomial())
+  expect_no_error(plot_envelope(fit))
+})

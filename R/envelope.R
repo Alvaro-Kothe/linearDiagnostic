@@ -42,9 +42,7 @@ envelope_measures <- function(model, residual_fn = stats::rstudent,
   for (i in seq_len(n_sim)) {
     y_ <- y_star[[i]]
 
-    formula_new_response <- stats::as.formula(
-      paste(enquote(y_)[2], "~.", collapse = "")
-    )
+    formula_new_response <- change_reponse_formula(y_)
 
     refit <- stats::update(model, formula. = formula_new_response, ...)
     e[, i] <- sort(residual_fn(refit))
