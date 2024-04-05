@@ -329,7 +329,7 @@ update_model_add <- function(model, values, threshold, hashtable = NULL, ...) {
 #' @export
 select_covariates <- function(model,
                               threshold = .15,
-                              direction = "both",
+                              direction = c("both", "backward", "forward"),
                               addable_coefs = names(stats::coef(model)),
                               measure_fn = function(x) summary(x)[["coefficients"]][, 4],
                               measure_one_at_time = FALSE,
@@ -344,6 +344,7 @@ select_covariates <- function(model,
     models <- utils::hashtab()
     models[[coefs_hash(names(stats::coef(model)))]] <- model
   } # nocov end
+  direction <- match.arg(direction)
   log_ <- list()
   cur_step <- 0
   seen_states <- list(names(stats::coef(model)))
