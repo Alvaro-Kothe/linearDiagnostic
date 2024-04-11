@@ -63,7 +63,7 @@ update_using_model_frame <- function(object, new_response, ...) {
 #' @inheritParams get_refit
 update_using_formula <- function(object, new_response, ...) {
   new_formula <- change_reponse_formula(new_response)
-  stats::update(object, formula. = new_formula)
+  stats::update(object, formula. = new_formula, ...)
 }
 
 #' @rdname get_refit
