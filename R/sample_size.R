@@ -34,11 +34,9 @@ simulate_coefficients <- function(model, generator = NULL, ...) {
     generator(n = length(mu), mu = mu)
   }
 
-  formula_new_response <- change_reponse_formula(y_star)
+  model_refit <- get_refit(model, y_star, ...)
 
-  refit <- stats::update(model, formula. = formula_new_response, ...)
-
-  list(coefs = stats::coef(refit), vcov = stats::vcov(refit))
+  list(coefs = stats::coef(model_refit), vcov = stats::vcov(model_refit))
 }
 
 #' Compute Wald Statistic

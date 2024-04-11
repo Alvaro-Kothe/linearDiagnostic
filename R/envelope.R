@@ -41,11 +41,8 @@ envelope_measures <- function(model, residual_fn = stats::rstudent,
   y_star <- stats::simulate(model, n_sim)
   for (i in seq_len(n_sim)) {
     y_ <- y_star[[i]]
-
-    formula_new_response <- change_reponse_formula(y_)
-
-    refit <- stats::update(model, formula. = formula_new_response, ...)
-    e[, i] <- sort(residual_fn(refit))
+    model_refit <- get_refit(model, y_)
+    e[, i] <- sort(residual_fn(model_refit))
   }
   es <- apply(e, 1, function(x) stats::quantile(x, c(alpha / 2, .5, 1 - alpha / 2)))
 
