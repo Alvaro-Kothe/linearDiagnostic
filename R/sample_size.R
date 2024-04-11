@@ -53,13 +53,8 @@ compute_statistic <- function(coefs, vcov, generator_coef) {
   (coefs - generator_coef) / sqrt(diag(vcov))
 }
 
-compute_p_values <- function(statistic, df = NULL) {
-  if (is.null(df)) {
-    p_values <- 1 - stats::pchisq(statistic^2, 1)
-  } else {
-    p_values <- 2 * stats::pt(abs(statistic), df = df, lower.tail = FALSE)
-  }
-
+compute_p_values <- function(statistic) {
+  p_values <- 1 - stats::pchisq(statistic^2, 1)
   p_values
 }
 
@@ -85,9 +80,6 @@ compute_p_values_joint <- function(coefs, vcov, generator_coef) {
 #'
 #' @inheritParams simulate_coefficients
 #' @param n_sim The number of simulations to perform.
-#' @param use_tstat Logical. If TRUE, the t-statistic is used for computing p-values.
-#'   If FALSE, the z-statistic is used. If NULL, the default is determined based on
-#'   the presence of the "t value" column in the summary of the model coefficients.
 #' @param test_coefficients Numeric vector. A vector with values to be used to compute
 #'   the test statistic. It should be the coefficients that was used to compute
 #'   the fitted values of the response. If `NULL` defaults to coef(model)
@@ -105,17 +97,13 @@ compute_p_values_joint <- function(coefs, vcov, generator_coef) {
 #' }
 #'
 #' @export
-get_p_values_matrix <- function(model, n_sim = 1000, use_tstat = NULL,
+get_p_values_matrix <- function(model, n_sim = 1000,
                                 test_coefficients = NULL, ...) {
   if (is.null(test_coefficients)) {
     test_coefficients <- stats::coef(model)
   }
   result <- matrix(NA, nrow = length(test_coefficients), ncol = n_sim)
-  if (is.null(use_tstat)) {
-    use_tstat <- colnames(summary(model)$coefficients)[3] == "t value"
-  }
 
-  df <- if (use_tstat) model$df.residual else NULL
   for (i in seq_len(n_sim)) {
     simulation <- simulate_coefficients(
       model = model,
@@ -126,7 +114,7 @@ get_p_values_matrix <- function(model, n_sim = 1000, use_tstat = NULL,
       vcov = simulation$vcov,
       generator_coef = test_coefficients
     )
-    result[, i] <- compute_p_values(statistic = statistic, df = df)
+    result[, i] <- compute_p_values(statistic = statistic)
   }
   result
 }

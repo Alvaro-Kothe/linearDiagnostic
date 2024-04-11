@@ -8,21 +8,6 @@ test_that("simulate_coefficients() returns a list with two components", {
   expect_named(simulation_result, c("coefs", "vcov"))
 })
 
-test_that("use_tstat yield different results", {
-  x <- c(1, 3, 5, 7)
-  y <- c(2, 3, 6, 9)
-  fit <- lm(y ~ x)
-  set.seed(1)
-  matrix_null <- get_p_values_matrix(fit, n_sim = 10, use_tstat = NULL)
-  set.seed(1)
-  matrix_true <- get_p_values_matrix(fit, n_sim = 10, use_tstat = TRUE)
-  set.seed(1)
-  matrix_false <- get_p_values_matrix(fit, n_sim = 10, use_tstat = FALSE)
-
-  expect_identical(matrix_true, matrix_null)
-  expect_false(identical(matrix_true, matrix_false))
-})
-
 test_that("test_coefficients generate different results", {
   x <- c(1, 3, 5, 7)
   y <- c(2, 3, 6, 9)
