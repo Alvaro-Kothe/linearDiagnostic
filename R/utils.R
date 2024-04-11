@@ -24,13 +24,11 @@ change_reponse_formula <- function(x) {
 #' @param new_response the new response, may be a vector or a matrix.
 #' @param ... other arguments passed to `refit` or `update`.
 #' @return A model with same class as `object`.
-#' @export
 get_refit <- function(object, new_response, ...) {
   UseMethod("get_refit", object)
 }
 
 #' @rdname get_refit
-#' @export
 get_refit.default <- function(object, new_response, ...) {
   if (!is.vector(new_response) && !is.matrix(new_response)) {
     stop("`new_response` should be either a vector or matrix")
@@ -69,7 +67,6 @@ update_using_formula <- function(object, new_response, ...) {
 }
 
 #' @rdname get_refit
-#' @export
 get_refit.merMod <- function(object, new_response, ...) {
   lme4::refit(object, new_response, ...)
 }
