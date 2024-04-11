@@ -1,17 +1,18 @@
-Package: linearDiagnostic
 Type: Package
+Package: linearDiagnostic
 Title: Diagnostics for Linear Models
 Version: 0.3.4
 Authors@R:
-    person("Álvaro", "Kothe", email = "kothe65@gmail.com", role = c("aut", "cre"),
-    comment = c(ORCID = "0000-0003-2114-3193"))
+    person("Álvaro", "Kothe", , "kothe65@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0003-2114-3193"))
 Description: Convenience functions to diagnose linear statistical models.
 License: MIT + file LICENSE
+Suggests: 
+    lme4,
+    MASS,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
-Suggests: 
-    MASS,
-    testthat (>= 3.0.0)
-Config/testthat/edition: 3

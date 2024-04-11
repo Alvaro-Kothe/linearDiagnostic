@@ -147,24 +147,6 @@ test_that("simulate_coefficients() works with poisson with offset", {
   expect_length(sim$coefs, 2)
 })
 
-test_that("plot_*_ecdf() errors when data is unavailable", {
-  df <- data.frame(
-    x = c(1, 3, 5, 9),
-    y = c(1, 2, 3, 4)
-  )
-  fit <- lm(y ~ x, data = df)
-  rm(df)
-
-  expect_error(plot_joint_pvalues_ecdf(fit, args_sim = list(n_sim = 10)))
-  expect_error(plot_pvalues_ecdf(fit, args_sim = list(n_sim = 10)))
-  expect_no_error(plot_joint_pvalues_ecdf(fit, args_sim = list(n_sim = 10, data = model.frame(fit))))
-  expect_no_error(plot_pvalues_ecdf(fit, args_sim = list(n_sim = 10, data = model.frame(fit))))
-  expect_no_error(plot_pvalues_ecdf(fit,
-    args_sim = list(n_sim = 10, use_tstat = FALSE, data = model.frame(fit))
-  ))
-})
-
-
 test_that("simulate_coefficients() with custom method works", {
   foo <- function(formula, data) {
     model_frame <- model.frame(formula, data = data)

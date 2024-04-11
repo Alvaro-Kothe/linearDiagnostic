@@ -35,9 +35,23 @@ test_that("plot_envelope() runs without errors", {
   expect_no_error(plot_envelope(lm(c(1, 5) ~ 1)))
 })
 
-test_that("plot_envelope() is compatible with models using cbind", {
+test_that("envelope_measures() is compatible with models using cbind", {
   m <- c(1, 4, 10, 30)
   y <- c(0, 2, 5, 15)
   fit <- glm(cbind(y, m - y) ~ 1, family = binomial())
-  expect_no_error(plot_envelope(fit))
+  expect_no_error(envelope_measures(fit))
+})
+
+test_that("envelope_measures works with lme4::lmer", {
+  data("sleepstudy", package = "lme4")
+  fit <- lme4::lmer(Reaction ~ Days + (Days | Subject), sleepstudy)
+  expect_no_error(envelope_measures(fit, n_sim = 5, residual_fn = residuals))
+})
+
+test_that("envelope_measures works with lme4::glmer", {
+  data("cbpp", package = "lme4")
+  fit <- lme4::glmer(cbind(incidence, size - incidence) ~ period + (1 | herd),
+    data = cbpp, family = binomial
+  )
+  expect_no_error(envelope_measures(fit, n_sim = 5, residual_fn = residuals))
 })
