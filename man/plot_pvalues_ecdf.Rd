@@ -18,8 +18,7 @@ plot_pvalues_ecdf(
 )
 }
 \arguments{
-\item{model}{A model with \code{\link[=update]{update()}}, \code{\link[=simulate]{simulate()}}, \code{\link[=fitted]{fitted()}},
-\code{\link[=coef]{coef()}}, \code{\link[=vcov]{vcov()}} methods.}
+\item{model}{A model compatible with \code{\link[=get_refit]{get_refit()}}, \code{\link[=get_fixef]{get_fixef()}} and \code{\link[=get_vcov]{get_vcov()}} methods.}
 
 \item{which}{A vector specifying the indices of coefficients to plot. Defaults
 to all coefficients.}
