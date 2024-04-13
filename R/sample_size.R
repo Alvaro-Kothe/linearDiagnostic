@@ -5,7 +5,7 @@
 #' the model's simulation method or a user-specified generator function.
 #'
 #' @param model A model compatible with [get_refit()], [get_fixef()] and [get_vcov()] methods.
-#' @param generator An optional function 2 arguments (n, mu) to generate new response vectors.
+#' @param generator An optional function with one argument to generate new response vectors.
 #'   If NULL, the model's [simulate()] method is used. Otherwise, the generator
 #'   function is used to simulate responses.
 #' @param ... Extra arguments to [get_refit()]
@@ -18,19 +18,20 @@
 #' }
 #'
 #' @examples
-#' \dontrun{
 #' fit <- lm(mpg ~ cyl, data = mtcars)
-#' generator <- function(n, mu) rt(n, 3) + mu
-#' simulate_coefficients(fit, generator = generator)
+#' generator <- function(object) {
+#'   n <- nobs(object)
+#'   mu <- fitted(object)
+#'   rt(n, 3) + mu
 #' }
+#' simulate_coefficients(fit, generator = generator)
 #'
 #' @export
 simulate_coefficients <- function(model, generator = NULL, ...) {
   y_star <- if (is.null(generator)) {
     stats::simulate(model)[[1]]
   } else {
-    mu <- stats::fitted(model)
-    generator(n = length(mu), mu = mu)
+    generator(model)
   }
 
   model_refit <- get_refit(model, y_star, ...)
@@ -87,13 +88,11 @@ compute_p_values_joint <- function(coefs, vcov, generator_coef) {
 #' @return A matrix where each column represents the p-values obtained from a simulation.
 #'
 #' @examples
-#' \dontrun{
 #' model <- lm(mpg ~ wt + hp, data = mtcars)
-#' generator <- function(n, mu) {
-#'   rt(n, 3) + mu
+#' generator <- function(object) {
+#'   rnorm(nobs(object), mean = fitted.values(object), sd = 2)
 #' }
 #' get_p_values_matrix(model, generator = generator, n_sim = 100)
-#' }
 #'
 #' @export
 get_p_values_matrix <- function(model, n_sim = 1000,

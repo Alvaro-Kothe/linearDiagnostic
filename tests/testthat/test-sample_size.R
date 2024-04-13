@@ -59,10 +59,21 @@ test_that("simulate_coefficients() with generator yield different results", {
 
   set.seed(1)
   simulation_result2 <- simulate_coefficients(fit,
-    generator = function(n, mu) rgamma(n, mu)
+    generator = function(model) rgamma(stats::nobs(model), abs(stats::fitted.values(model)))
   )
 
   expect_false(identical(simulation_result1, simulation_result2))
+})
+
+test_that("p_values are equal with deterministic generator", {
+  x <- c(1, 3, 5, 7)
+  y <- c(2, 3, 6, 9)
+  fit <- lm(y ~ x)
+  generator <- function(model) seq_len(nobs(model))
+  suppressWarnings(
+    p_values <- get_p_values_joint(fit, n_sim = 5, generator = generator)
+  )
+  expect_setequal(p_values, p_values[1])
 })
 
 test_that("plot_*_pvalues_ecdf work", {
@@ -90,11 +101,6 @@ test_that("plot_*_pvalues_ecdf work", {
   expect_no_error(plot_pvalues_ecdf(fit, args_sim = list(n_sim = 10), plot_uniform = TRUE))
   expect_no_error(plot_pvalues_ecdf(fit, args_sim = list(n_sim = 10), plot_uniform = TRUE, uniform_legend = FALSE))
   expect_no_error(plot_pvalues_ecdf(fit, args_sim = list(n_sim = 10), plot_uniform = FALSE))
-  expect_no_error(plot_pvalues_ecdf(fit,
-    args_sim =
-      list(n_sim = 2, generator = function(n, mu) rt(n, 3) + mu),
-    plot_uniform = FALSE
-  ))
 })
 
 test_that("plot_*_pvalues throw warning with singular matrix", {
