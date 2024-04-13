@@ -6,13 +6,17 @@
 \usage{
 plot_envelope(
   model,
+  colors = c("red", "black"),
   xlab = "Expected quantiles",
   ylab = "Observed quantiles",
   ...
 )
 }
 \arguments{
-\item{model}{A model with \code{\link[stats:update]{stats::update()}} and \code{\link[stats:simulate]{stats::simulate()}} methods.}
+\item{model}{A model \code{\link[stats:simulate]{stats::simulate()}} and compatible with \code{\link[=get_refit]{get_refit()}}.}
+
+\item{colors}{A vector with two strings, the first element is the color of the
+elements outside of the envelope, the second is for the elements inside.}
 
 \item{xlab}{The label for the x-axis. Defaults to "Expected quantiles".}
 
@@ -38,10 +42,16 @@ The plot includes expected quantiles versus observed
 quantiles, along with lower, median, and upper bounds of the constructed
 envelope.
 }
+\details{
+This function calls \code{\link[=envelope_measures]{envelope_measures()}} and plot it's results.
+}
 \examples{
 \dontrun{
 model <- lm(mpg ~ wt + hp, data = mtcars)
 plot_envelope(model)
 }
 
+}
+\seealso{
+\code{\link[graphics:plot.default]{graphics::plot()}}
 }

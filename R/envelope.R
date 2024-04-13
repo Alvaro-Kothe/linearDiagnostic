@@ -1,13 +1,13 @@
 #' Generate Simulated Envelope Measures
 #'
-#' @param model A model with [stats::update()] and [stats::simulate()] methods.
+#' @param model A model [stats::simulate()] and compatible with [get_refit()].
 #' @param residual_fn A function to calculate model residuals. The default is
 #'   `stats::rstudent` for studentized residuals.
 #' @param alpha The significance level for constructing the envelope bounds.
 #'   Defaults to 0.05.
 #' @param n_sim The number of simulations to perform for envelope construction.
 #'   Defaults to 100.
-#' @param ... Extra arguments to [stats::update()]
+#' @param ... Extra arguments to [get_refit()]
 #'
 #' @return A list containing the following components:
 #' \describe{
@@ -30,7 +30,7 @@
 #' envelope_measures(fit, residual_fn = rstandard, n_sim = 200)
 #' }
 #'
-#' @seealso \code{\link{update}}, \code{\link{simulate}}, \code{\link{rstudent}}
+#' @seealso \code{\link{get_refit}}, \code{\link{simulate}}, \code{\link{rstudent}}
 #'
 #' @export
 envelope_measures <- function(model, residual_fn = stats::rstudent,
@@ -59,10 +59,14 @@ envelope_measures <- function(model, residual_fn = stats::rstudent,
   ))
 }
 
-plot_envelope_base <- function(expected, observed, lower, med, upper,
-                               xlab = "Expected quantiles",
-                               ylab = "Observed quantiles") {
-  graphics::plot(expected, observed, type = "p", pch = 20, xlab = xlab, ylab = ylab)
+plot_envelope_base <- function(expected, observed, lower, med, upper, outside,
+                               colors,
+                               xlab,
+                               ylab) {
+  graphics::plot(expected, observed,
+    col = ifelse(outside, colors[1], colors[2]),
+    type = "p", pch = 20, xlab = xlab, ylab = ylab
+  )
   graphics::lines(expected, lower, lty = 1)
   graphics::lines(expected, upper, lty = 1)
   graphics::lines(expected, med, lty = 2)
@@ -75,7 +79,11 @@ plot_envelope_base <- function(expected, observed, lower, med, upper,
 #' quantiles, along with lower, median, and upper bounds of the constructed
 #' envelope.
 #'
-#' @param model A model with [stats::update()] and [stats::simulate()] methods.
+#' This function calls [envelope_measures()] and plot it's results.
+#'
+#' @inheritParams envelope_measures
+#' @param colors A vector with two strings, the first element is the color of the
+#'   elements outside of the envelope, the second is for the elements inside.
 #' @param xlab The label for the x-axis. Defaults to "Expected quantiles".
 #' @param ylab The label for the y-axis. Defaults to "Observed quantiles".
 #' @param ... Additional arguments for [envelope_measures()]
@@ -97,13 +105,18 @@ plot_envelope_base <- function(expected, observed, lower, med, upper,
 #' plot_envelope(model)
 #' }
 #'
+#' @seealso [graphics::plot()]
+#'
 #' @export
-plot_envelope <- function(model, xlab = "Expected quantiles", ylab = "Observed quantiles", ...) {
+plot_envelope <- function(model,
+                          colors = c("red", "black"),
+                          xlab = "Expected quantiles",
+                          ylab = "Observed quantiles", ...) {
   env_meas <- envelope_measures(model, ...)
 
   plot_envelope_base(env_meas$expected, env_meas$observed,
-    env_meas$lower, env_meas$med, env_meas$upper,
-    xlab = xlab, ylab = ylab
+    env_meas$lower, env_meas$med, env_meas$upper, env_meas$outside,
+    colors = colors, xlab = xlab, ylab = ylab
   )
   return(invisible(env_meas))
 }
