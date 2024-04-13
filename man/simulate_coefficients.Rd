@@ -7,14 +7,13 @@
 simulate_coefficients(model, generator = NULL, ...)
 }
 \arguments{
-\item{model}{A model with \code{\link[=update]{update()}}, \code{\link[=simulate]{simulate()}}, \code{\link[=fitted]{fitted()}},
-\code{\link[=coef]{coef()}}, \code{\link[=vcov]{vcov()}} methods.}
+\item{model}{A model compatible with \code{\link[=get_refit]{get_refit()}}, \code{\link[=get_fixef]{get_fixef()}} and \code{\link[=get_vcov]{get_vcov()}} methods.}
 
 \item{generator}{An optional function 2 arguments (n, mu) to generate new response vectors.
 If NULL, the model's \code{\link[=simulate]{simulate()}} method is used. Otherwise, the generator
 function is used to simulate responses.}
 
-\item{...}{Extra arguments to \code{\link[stats:update]{stats::update()}}}
+\item{...}{Extra arguments to \code{\link[=get_refit]{get_refit()}}}
 }
 \value{
 A list containing the simulated coefficients and covariance matrices.

@@ -132,6 +132,13 @@ test_that("simulate_coefficients() works with poisson with offset", {
   expect_length(sim$coefs, 2)
 })
 
+test_that("Can compute p_values from merMod class", {
+  data("sleepstudy", package = "lme4")
+  fit <- lme4::lmer(Reaction ~ Days + (Days | Subject), sleepstudy)
+  expect_no_error(get_p_values_joint(fit, n_sim = 2))
+  expect_no_error(get_p_values_matrix(fit, n_sim = 2))
+})
+
 test_that("simulate_coefficients() with custom method works", {
   foo <- function(formula, data) {
     model_frame <- model.frame(formula, data = data)

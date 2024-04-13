@@ -4,12 +4,11 @@
 #' model. It allows for generating new response vectors either using
 #' the model's simulation method or a user-specified generator function.
 #'
-#' @param model A model with [update()], [simulate()], [fitted()],
-#' [coef()], [vcov()] methods.
+#' @param model A model compatible with [get_refit()], [get_fixef()] and [get_vcov()] methods.
 #' @param generator An optional function 2 arguments (n, mu) to generate new response vectors.
 #'   If NULL, the model's [simulate()] method is used. Otherwise, the generator
 #'   function is used to simulate responses.
-#' @param ... Extra arguments to [stats::update()]
+#' @param ... Extra arguments to [get_refit()]
 #'
 #' @return A list containing the simulated coefficients and covariance matrices.
 #'   The list includes components:
@@ -36,7 +35,7 @@ simulate_coefficients <- function(model, generator = NULL, ...) {
 
   model_refit <- get_refit(model, y_star, ...)
 
-  list(coefs = stats::coef(model_refit), vcov = stats::vcov(model_refit))
+  list(coefs = get_fixef(model_refit), vcov = get_vcov(model_refit))
 }
 
 #' Compute Wald Statistic
@@ -100,7 +99,7 @@ compute_p_values_joint <- function(coefs, vcov, generator_coef) {
 get_p_values_matrix <- function(model, n_sim = 1000,
                                 test_coefficients = NULL, ...) {
   if (is.null(test_coefficients)) {
-    test_coefficients <- stats::coef(model)
+    test_coefficients <- get_fixef(model)
   }
   result <- matrix(NA, nrow = length(test_coefficients), ncol = n_sim)
 
@@ -139,7 +138,7 @@ get_p_values_joint <- function(model, n_sim = 1000, test_coefficients = NULL, ..
   result <- double(n_sim)
   ginv_uses <- 0
   if (is.null(test_coefficients)) {
-    test_coefficients <- stats::coef(model)
+    test_coefficients <- get_fixef(model)
   }
   for (i in seq_len(n_sim)) {
     simulation <- simulate_coefficients(
