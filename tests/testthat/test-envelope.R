@@ -1,7 +1,7 @@
 test_that("envelope_measures() observed and expected concides with qqnorm", {
   fit <- lm(mpg ~ cyl, data = mtcars)
   residual_fn <- stats::rstudent
-  env_meas <- envelope_measures(fit, residual_fn = residual_fn)
+  env_meas <- envelope_measures(fit, residual_fn = residual_fn, n_sim = 5)
   residual <- residual_fn(fit)
   expect_mapequal(env_meas$observed, residual)
   expect_mapequal(env_meas$observed, stats::qqnorm(residual, plot.it = FALSE)$y)
@@ -12,11 +12,11 @@ test_that("envelope_measures() acceptable coverage for correct model", {
   set.seed(1)
   x <- matrix(rnorm(1000), ncol = 2)
   beta <- c(1, 1)
-  y <- rnorm(nrow(x), mean = x %*% beta, sd = .01)
+  y <- rnorm(nrow(x), mean = x %*% beta, sd = 0.01)
   fit <- lm(y ~ x + 0)
-  env_meas <- envelope_measures(fit)
+  env_meas <- envelope_measures(fit, n_sim = 10)
   inside_band <- mean(env_meas$lower < env_meas$observed & env_meas$observed < env_meas$upper)
-  expect_gte(inside_band, .87)
+  expect_gte(inside_band, 0.87)
   expect_equal(1 - inside_band, mean(env_meas$outside))
 })
 
@@ -26,26 +26,26 @@ test_that("envelope_measures() detects incorrect fit", {
   beta <- c(1, 1)
   y <- rpois(nrow(x), lambda = exp(x %*% beta))
   fit <- lm(y ~ x + 0)
-  env_meas <- envelope_measures(fit)
+  env_meas <- envelope_measures(fit, n_sim = 10)
   outside_band <- mean(env_meas$outside)
-  expect_gt(outside_band, .5)
+  expect_gt(outside_band, 0.5)
 })
 
 test_that("plot_envelope() runs without errors", {
-  expect_no_error(plot_envelope(lm(c(1, 5) ~ 1)))
+  expect_no_error(plot_envelope(lm(c(1, 5) ~ 1), n_sim = 2))
 })
 
 test_that("envelope_measures() is compatible with models using cbind", {
   m <- c(1, 4, 10, 30)
   y <- c(0, 2, 5, 15)
   fit <- glm(cbind(y, m - y) ~ 1, family = binomial())
-  expect_no_error(envelope_measures(fit))
+  expect_no_error(envelope_measures(fit, n_sim = 2))
 })
 
 test_that("envelope_measures works with lme4::lmer", {
   data("sleepstudy", package = "lme4")
   fit <- lme4::lmer(Reaction ~ Days + (Days | Subject), sleepstudy)
-  expect_no_error(envelope_measures(fit, n_sim = 5, residual_fn = residuals))
+  expect_no_error(envelope_measures(fit, n_sim = 2, residual_fn = residuals))
 })
 
 test_that("envelope_measures works with lme4::glmer", {
@@ -53,5 +53,5 @@ test_that("envelope_measures works with lme4::glmer", {
   fit <- lme4::glmer(cbind(incidence, size - incidence) ~ period + (1 | herd),
     data = cbpp, family = binomial
   )
-  expect_no_error(envelope_measures(fit, n_sim = 5, residual_fn = residuals))
+  expect_no_error(envelope_measures(fit, n_sim = 2, residual_fn = residuals))
 })

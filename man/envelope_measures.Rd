@@ -13,7 +13,7 @@ envelope_measures(
 )
 }
 \arguments{
-\item{model}{A model with \code{\link[stats:update]{stats::update()}} and \code{\link[stats:simulate]{stats::simulate()}} methods.}
+\item{model}{A model \code{\link[stats:simulate]{stats::simulate()}} and compatible with \code{\link[=get_refit]{get_refit()}}.}
 
 \item{residual_fn}{A function to calculate model residuals. The default is
 \code{stats::rstudent} for studentized residuals.}
@@ -24,7 +24,7 @@ Defaults to 0.05.}
 \item{n_sim}{The number of simulations to perform for envelope construction.
 Defaults to 100.}
 
-\item{...}{Extra arguments to \code{\link[stats:update]{stats::update()}}}
+\item{...}{Extra arguments to \code{\link[=get_refit]{get_refit()}}}
 }
 \value{
 A list containing the following components:
@@ -53,5 +53,5 @@ envelope_measures(fit, residual_fn = rstandard, n_sim = 200)
 
 }
 \seealso{
-\code{\link{update}}, \code{\link{simulate}}, \code{\link{rstudent}}
+\code{\link{get_refit}}, \code{\link{simulate}}, \code{\link{rstudent}}
 }
