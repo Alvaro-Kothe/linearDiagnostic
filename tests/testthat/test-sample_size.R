@@ -149,6 +149,7 @@ test_that("simulate_coefficients() with custom method works", {
     out$data <- data
     out$model_frame <- model_frame
     out$vcov <- out$sigma * xtxinv
+    out$formula <- formula
 
     class(out) <- "foo"
 
@@ -177,6 +178,11 @@ test_that("simulate_coefficients() with custom method works", {
     rep_len(NA, 2)
   }
   assign("coef.foo", coef.foo, envir = .GlobalEnv)
+
+  formula.foo <- function(object) {
+    object$formula
+  }
+  assign("formula.foo", formula.foo, envir = .GlobalEnv)
   # nolint end
 
 
@@ -192,7 +198,7 @@ test_that("simulate_coefficients() with custom method works", {
   )
 
   rm(
-    list = c("simulate.foo", "update.foo", "vcov.foo", "coef.foo"),
+    list = c("simulate.foo", "update.foo", "vcov.foo", "coef.foo", "formula.foo"),
     envir = .GlobalEnv
   )
 })

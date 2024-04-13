@@ -17,13 +17,18 @@ change_reponse_formula <- function(x) {
 #' Refit a model with a new response.
 #'
 #' This function uses `new_response` to refit `object` replacing its old response variable.
-#' If the class is `merMod` it uses [lme4::refit()], otherwise uses [stats::update()]
-#' and [stats::model.matrix()].
+#' If the class is `merMod` it uses [lme4::refit()], otherwise uses [stats::update()].
+#'
+#' The default method tries to update the model response using it's [stats::model.frame()],
+#' if it errors it tries to update the model by inserting the `new_response`
+#' directly into the object formula.
 #'
 #' @param object A model.
 #' @param new_response the new response, may be a vector or a matrix.
 #' @param ... other arguments passed to `refit` or `update`.
 #' @return A model with same class as `object`.
+#' @seealso [stats::update()]
+#' @export
 get_refit <- function(object, new_response, ...) {
   UseMethod("get_refit", object)
 }
@@ -32,6 +37,10 @@ get_refit <- function(object, new_response, ...) {
 get_refit.default <- function(object, new_response, ...) {
   if (!is.vector(new_response) && !is.matrix(new_response)) {
     stop("`new_response` should be either a vector or matrix")
+  }
+  if (as.character(stats::formula(object)[[2]])[[1]] == "c") {
+    # The model was fitted using c(vec) ~ X
+    return(update_using_formula(object, new_response, ...))
   }
   tryCatch(
     update_using_model_frame(object, new_response, ...),
@@ -55,7 +64,7 @@ update_using_model_frame <- function(object, new_response, ...) {
 
 #' Update the object using only the formula
 #'
-#' Create a new formula with with `new_response` printed on the left hand side.
+#' Create a new formula with `new_response` values directly on the formula left hand side.
 #'
 #' This function is designed to be used as a fallback for [update_using_model_frame()]
 #' as it's prone to run with memory issues.
