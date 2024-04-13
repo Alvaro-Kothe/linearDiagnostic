@@ -25,12 +25,10 @@ This function generates a matrix of p-values by simulating coefficients from
 a given model and computing test statistics for each simulation.
 }
 \examples{
-\dontrun{
 model <- lm(mpg ~ wt + hp, data = mtcars)
-generator <- function(n, mu) {
-  rt(n, 3) + mu
+generator <- function(object) {
+  rnorm(nobs(object), mean = fitted.values(object), sd = 2)
 }
 get_p_values_matrix(model, generator = generator, n_sim = 100)
-}
 
 }

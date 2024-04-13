@@ -9,7 +9,7 @@ simulate_coefficients(model, generator = NULL, ...)
 \arguments{
 \item{model}{A model compatible with \code{\link[=get_refit]{get_refit()}}, \code{\link[=get_fixef]{get_fixef()}} and \code{\link[=get_vcov]{get_vcov()}} methods.}
 
-\item{generator}{An optional function 2 arguments (n, mu) to generate new response vectors.
+\item{generator}{An optional function with one argument to generate new response vectors.
 If NULL, the model's \code{\link[=simulate]{simulate()}} method is used. Otherwise, the generator
 function is used to simulate responses.}
 
@@ -29,10 +29,12 @@ model. It allows for generating new response vectors either using
 the model's simulation method or a user-specified generator function.
 }
 \examples{
-\dontrun{
 fit <- lm(mpg ~ cyl, data = mtcars)
-generator <- function(n, mu) rt(n, 3) + mu
-simulate_coefficients(fit, generator = generator)
+generator <- function(object) {
+  n <- nobs(object)
+  mu <- fitted(object)
+  rt(n, 3) + mu
 }
+simulate_coefficients(fit, generator = generator)
 
 }
