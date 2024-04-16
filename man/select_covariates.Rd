@@ -8,7 +8,7 @@ select_covariates(
   model,
   threshold = 0.15,
   direction = c("both", "backward", "forward"),
-  addable_coefs = names(stats::coef(model)),
+  addable_coefs = names(get_fixef(model)),
   measure_fn = function(x) summary(x)[["coefficients"]][, 4],
   measure_one_at_time = FALSE,
   minimize_only = FALSE,

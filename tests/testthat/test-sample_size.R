@@ -24,6 +24,13 @@ test_that("test_coefficients generate different results", {
   expect_false(identical(matrix_regular, matrix_test_coefs))
 })
 
+test_that("rownames from get_p_values_matrix is the same as model's coefficients names", {
+  df <- data.frame("foo" = c(1, 2, 3, 7), "bar" = c(2, 3, 1, 9), "y" = c(3, 5, 1, 2))
+  fit <- lm(y ~ foo + bar, data = df)
+  mat <- get_p_values_matrix(fit, n_sim = 2)
+  expect_named(mat[, 1], c("(Intercept)", "foo", "bar"))
+})
+
 test_that("simulate_coefficients() coefs length is equal to number of parameters estimated", {
   x <- c(1, 3, 5, 7)
   y <- c(2, 3, 6, 9)

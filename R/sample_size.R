@@ -101,6 +101,7 @@ get_p_values_matrix <- function(model, n_sim = 1000,
     test_coefficients <- get_fixef(model)
   }
   result <- matrix(NA, nrow = length(test_coefficients), ncol = n_sim)
+  rownames(result) <- names(get_fixef(model))
 
   for (i in seq_len(n_sim)) {
     simulation <- simulate_coefficients(
@@ -196,8 +197,8 @@ get_p_values_joint <- function(model, n_sim = 1000, test_coefficients = NULL, ..
 #' }
 #' @export
 plot_pvalues_ecdf <- function(model,
-                              which = seq_along(stats::coef(model)),
-                              caption = paste("ECDF of", names(stats::coef(model))[which]),
+                              which = seq_along(get_fixef(model)),
+                              caption = paste("ECDF of", names(get_fixef(model))[which]),
                               plot_uniform = TRUE,
                               uniform_legend = TRUE,
                               ylab = "Empirical cumulative distribution", xlab = "p-value",
