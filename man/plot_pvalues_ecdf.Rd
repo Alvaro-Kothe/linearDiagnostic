@@ -6,8 +6,8 @@
 \usage{
 plot_pvalues_ecdf(
   model,
-  which = seq_along(stats::coef(model)),
-  caption = paste("ECDF of", names(stats::coef(model))[which]),
+  which = seq_along(get_fixef(model)),
+  caption = paste("ECDF of", names(get_fixef(model))[which]),
   plot_uniform = TRUE,
   uniform_legend = TRUE,
   ylab = "Empirical cumulative distribution",

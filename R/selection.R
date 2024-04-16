@@ -93,13 +93,13 @@ backward_values <- function(model,
                             hashtable = NULL,
                             ...) {
   nargs_measure_fn <- length(formals(measure_fn))
-  cur_coefs <- names(stats::coef(model))
+  cur_coefs <- names(get_fixef(model))
   candidates_remove <- stats::setNames(nm = setdiff(cur_coefs, do_not_remove))
 
   evaluate_one_at_time <- measure_one_at_time || nargs_measure_fn == 2L
 
   possible_next_states <- lapply(candidates_remove, function(x) {
-    names(stats::coef(model))[names(stats::coef(model)) != x]
+    names(get_fixef(model))[names(get_fixef(model)) != x]
   })
 
   next_state_seen <- sapply(
@@ -152,8 +152,8 @@ forward_values <- function(model,
                            hashtable = NULL,
                            ...) {
   nargs_measure_fn <- length(formals(measure_fn))
-  add_candidates <- stats::setNames(nm = setdiff(addable_coefs, names(stats::coef(model))))
-  possible_next_states <- lapply(add_candidates, c, names(stats::coef(model)))
+  add_candidates <- stats::setNames(nm = setdiff(addable_coefs, names(get_fixef(model))))
+  possible_next_states <- lapply(add_candidates, c, names(get_fixef(model)))
   next_state_seen <- sapply(
     possible_next_states,
     function(x) any(sapply(seen_states, setequal, x))
@@ -211,8 +211,8 @@ update_model_remove <- function(model,
     return(NULL)
   }
   removed_var <- names(to_remove)
-  remaining_coefs <- names(stats::coef(model))[
-    names(stats::coef(model)) != removed_var
+  remaining_coefs <- names(get_fixef(model))[
+    names(get_fixef(model)) != removed_var
   ]
   key <- coefs_hash(remaining_coefs)
   prev_fit_model <- hashtable[[key]]
@@ -240,7 +240,7 @@ update_model_add <- function(model, values, threshold, hashtable = NULL, ...) {
   }
 
   added_var <- names(to_add)
-  new_coefs <- c(names(stats::coef(model)), added_var)
+  new_coefs <- c(names(get_fixef(model)), added_var)
   key <- coefs_hash(new_coefs)
   prev_fit_model <- hashtable[[key]]
   if (!is.null(prev_fit_model)) {
@@ -330,7 +330,7 @@ update_model_add <- function(model, values, threshold, hashtable = NULL, ...) {
 select_covariates <- function(model,
                               threshold = .15,
                               direction = c("both", "backward", "forward"),
-                              addable_coefs = names(stats::coef(model)),
+                              addable_coefs = names(get_fixef(model)),
                               measure_fn = function(x) summary(x)[["coefficients"]][, 4],
                               measure_one_at_time = FALSE,
                               minimize_only = FALSE,
@@ -342,12 +342,12 @@ select_covariates <- function(model,
     models <- NULL
   } else {
     models <- utils::hashtab()
-    models[[coefs_hash(names(stats::coef(model)))]] <- model
+    models[[coefs_hash(names(get_fixef(model)))]] <- model
   } # nocov end
   direction <- match.arg(direction)
   log_ <- list()
   cur_step <- 0
-  seen_states <- list(names(stats::coef(model)))
+  seen_states <- list(names(get_fixef(model)))
   do_backward <- direction %in% c("backward", "both")
   do_forward <- direction %in% c("forward", "both")
 
@@ -363,7 +363,7 @@ select_covariates <- function(model,
     cur_threshold <- threshold_fn(model)
 
     # 1. Backward removal
-    if (do_backward && length(stats::coef(model)) > 1) {
+    if (do_backward && length(get_fixef(model)) > 1) {
       values <- backward_values(
         model = model,
         measure_fn = measure_fn,
@@ -385,7 +385,7 @@ select_covariates <- function(model,
 
       if (!is.null(updated_model)) {
         model <- updated_model$fit
-        seen_states <- append(seen_states, list(names(stats::coef(model))))
+        seen_states <- append(seen_states, list(names(get_fixef(model))))
         log_[[cur_step]] <- list(
           step = cur_step, operation = "removal",
           value = updated_model$removed_var
@@ -416,7 +416,7 @@ select_covariates <- function(model,
 
       if (!is.null(updated_model)) {
         model <- updated_model$fit
-        seen_states <- append(seen_states, list(names(stats::coef(model))))
+        seen_states <- append(seen_states, list(names(get_fixef(model))))
         log_[[cur_step]] <- list(
           step = cur_step, operation = "addition",
           value = updated_model$added_var
