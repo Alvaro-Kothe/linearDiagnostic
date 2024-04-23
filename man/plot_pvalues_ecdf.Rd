@@ -54,7 +54,6 @@ and covariance matrices.
 \examples{
 \dontrun{
 fit <- lm(mpg ~ cyl, data = mtcars)
-
 plot_pvalues_ecdf(fit)
 }
 }

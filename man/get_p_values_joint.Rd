@@ -13,9 +13,9 @@ get_p_values_joint(model, n_sim = 1000, test_coefficients = NULL, ...)
 
 \item{test_coefficients}{Numeric vector. A vector with values to be used to compute
 the test statistic. It should be the coefficients that was used to compute
-the fitted values of the response. If \code{NULL} defaults to coef(model)}
+the fitted values of the response. If \code{NULL} defaults to model fixed effects}
 
-\item{...}{Additional arguments to be passed to \code{simulate_coefficients}.}
+\item{...}{Additional arguments to be passed to \code{get_p_values}.}
 }
 \value{
 A numeric vector containing the joint p-values obtained from each simulation.
@@ -29,5 +29,4 @@ a given model and computing Wald statistics for each simulation.
 model <- lm(mpg ~ wt + hp, data = mtcars)
 get_p_values_joint(model, n_sim = 100)
 }
-
 }

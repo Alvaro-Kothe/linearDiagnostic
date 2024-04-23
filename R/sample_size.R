@@ -1,44 +1,3 @@
-#' Simulate Model Coefficients and Covariance Matrix
-#'
-#' This function simulates coefficients and the covariance matrix for a fitted
-#' model. It allows for generating new response vectors either using
-#' the model's simulation method or a user-specified generator function.
-#'
-#' @param model A model compatible with [get_refit()], [get_fixef()] and [get_vcov()] methods.
-#' @param generator An optional function with one argument to generate new response vectors.
-#'   If NULL, the model's [simulate()] method is used. Otherwise, the generator
-#'   function is used to simulate responses.
-#' @param ... Extra arguments to [get_refit()]
-#'
-#' @return A list containing the simulated coefficients and covariance matrices.
-#'   The list includes components:
-#' \describe{
-#'   \item{coefs}{Coefficient vectors.}
-#'   \item{vcov}{Covariance matrices.}
-#' }
-#'
-#' @examples
-#' fit <- lm(mpg ~ cyl, data = mtcars)
-#' generator <- function(object) {
-#'   n <- nobs(object)
-#'   mu <- fitted(object)
-#'   rt(n, 3) + mu
-#' }
-#' simulate_coefficients(fit, generator = generator)
-#'
-#' @export
-simulate_coefficients <- function(model, generator = NULL, ...) {
-  y_star <- if (is.null(generator)) {
-    stats::simulate(model)[[1]]
-  } else {
-    generator(model)
-  }
-
-  model_refit <- get_refit(model, y_star, ...)
-
-  list(coefs = get_fixef(model_refit), vcov = get_vcov(model_refit))
-}
-
 #' Compute Wald Statistic
 #'
 #' Compute Wald statistic for one coefficient using the simulation coefficient
@@ -59,9 +18,10 @@ compute_p_values <- function(statistic) {
 }
 
 compute_p_values_joint <- function(coefs, vcov, generator_coef) {
+  used_ginv <- FALSE
   vcov_inv <- tryCatch(solve(vcov),
     error = function(e) {
-      warning("Couldn't inverse vcov and used `MASS::ginv` instead\n")
+      used_ginv <<- TRUE
       MASS::ginv(vcov)
     }
   )
@@ -70,7 +30,111 @@ compute_p_values_joint <- function(coefs, vcov, generator_coef) {
 
   p_values <- 1 - stats::pchisq(chisq_stat, length(generator_coef))
 
-  return(p_values)
+  list(p_values, used_ginv)
+}
+
+#' Generate P-Values Matrix from Model Coefficient Simulations
+#'
+#' This function generates p-values by simulating coefficients from
+#' a given model and computing Wald test statistics for each simulation.
+#'
+#' Generate new responses with [stats::simulate()] if generator is `NULL`.
+#' If `generator` is provided, it replicates the `generator(model)` by `n_sim`.
+#'
+#' For each new response calls [get_refit()] to generate a new model with the new
+#' response. It gets the fixed effects and the variance and covariance matrix with
+#' [get_fixef()] and [get_vcov()].
+#'
+#' The Univariate Wald test is computed from the Wald statistic, and the p-value
+#' is obtained from a chi-squared distribution with one d.f.
+#' The joint Wad test computes the inverse from the vcov result and computes the
+#' Wald statistic using the `test_coefficients`. The p-values are also obtained
+#' from a chi-squared distribution with `length(test_coefficients)` d.f.
+#'
+#' @param model A model compatible with [get_refit()], [get_fixef()] and [get_vcov()] methods.
+#' @param generator An optional function with one argument to generate new response vectors.
+#'   If NULL, the model's [simulate()] method is used. Otherwise, the generator
+#'   function is used to simulate responses.
+#' @param n_sim The number of simulations to perform.
+#' @param test_coefficients Numeric vector. A vector with values to be used to compute
+#'   the test statistic. It should be the coefficients that was used to compute
+#'   the fitted values of the response. If `NULL` defaults to model fixed effects
+#' @param ... Additional arguments to be passed to [get_refit()].
+#'
+#' @return An object of class `LD_pvalues` class, which contains the following components:
+#' \describe{
+#'   \item{test_coefficients}{Vector of coefficients being tested.}
+#'   \item{pvalues_matrix}{Matrix of p-values where each column corresponds to a
+#'          simulation and each row corresponds to a coefficient.}
+#'   \item{pvalues_joint}{Vector containing the joint p-values obtained from each simulation.}
+#'   \item{simulation_fixef}{List of fixed effect coefficient estimates from each simulation.}
+#'   \item{simulation_vcov}{List of covariance matrices estimated from each simulation.}
+#'   \item{converged}{Logical vector indicating whether model refitting converged for each simulation.}
+#'   \item{ginv_used}{Logical vector indicating whether generalized inversed was used to compute the joint p-value.}
+#'   \item{responses}{Simulated responses used for refitting the model.}
+#' }
+#' @seealso [plot.LD_pvalues()] for plotting.
+#' @examples
+#' model <- lm(mpg ~ wt + hp, data = mtcars)
+#' generator <- function(object) {
+#'   rnorm(nobs(object), mean = fitted.values(object), sd = 2)
+#' }
+#' get_p_values(model, generator = generator, n_sim = 100)
+#'
+#' @export
+get_p_values <- function(model, n_sim = 1000, generator = NULL,
+                         test_coefficients = NULL, ...) {
+  out <- list()
+  if (is.null(test_coefficients)) {
+    test_coefficients <- get_fixef(model)
+  }
+  out$test_coefficients <- test_coefficients
+  out$pvalues_matrix <- matrix(NA, nrow = length(test_coefficients), ncol = n_sim)
+  rownames(out$pvalues_matrix) <- names(test_coefficients)
+  out$pvalues_joint <- numeric(n_sim)
+  out$simulation_fixef <- list()
+  out$simulation_vcov <- list()
+  out$converged <- rep(NA, n_sim)
+  out$ginv_used <- logical(n_sim)
+  out$responses <- if (is.null(generator)) {
+    stats::simulate(model, n_sim)
+  } else {
+    replicate(n_sim, generator(model))
+  }
+
+  for (i in seq_len(n_sim)) {
+    y_star <- out$responses[[i]]
+    model_refit <- get_refit(model, y_star, ...)
+    fef <- get_fixef(model_refit)
+    vc <- get_vcov(model_refit)
+    try(out$converged[i] <- get_converged(model_refit), silent = TRUE)
+    out$simulation_fixef[[i]] <- fef
+    out$simulation_vcov[[i]] <- vc
+
+    statistic <- compute_statistic(coefs = fef, vcov = vc, generator_coef = test_coefficients)
+    out$pvalues_matrix[, i] <- compute_p_values(statistic = statistic)
+
+    pj <- compute_p_values_joint(
+      coefs = fef,
+      vcov = vc,
+      generator_coef = test_coefficients
+    )
+    out$pvalues_joint[i] <- pj[[1]]
+    out$ginv_used[i] <- pj[[2]]
+  }
+  if ((ginv_uses <- sum(out$ginv_used)) > 0) {
+    warning(
+      "Couldn't inverse vcov from ",
+      ginv_uses,
+      " simulations and used `MASS::ginv` instead"
+    )
+  }
+  if ((sum_not_conv <- sum(!out$converged, na.rm = TRUE)) > 0) {
+    warning("Model didn't converge in ", sum_not_conv, " simulations")
+  }
+
+  class(out) <- "LD_pvalues"
+  out
 }
 
 #' Generate P-Values Matrix from Model Coefficient Simulations
@@ -78,44 +142,24 @@ compute_p_values_joint <- function(coefs, vcov, generator_coef) {
 #' This function generates a matrix of p-values by simulating coefficients from
 #' a given model and computing test statistics for each simulation.
 #'
-#' @inheritParams simulate_coefficients
-#' @param n_sim The number of simulations to perform.
-#' @param test_coefficients Numeric vector. A vector with values to be used to compute
-#'   the test statistic. It should be the coefficients that was used to compute
-#'   the fitted values of the response. If `NULL` defaults to coef(model)
-#' @param ... Additional arguments to be passed to `simulate_coefficients`.
+#' @inheritParams get_p_values
+#' @param ... Additional arguments to be passed to `get_p_values`.
 #'
 #' @return A matrix where each column represents the p-values obtained from a simulation.
 #'
 #' @examples
+#' \dontrun{
 #' model <- lm(mpg ~ wt + hp, data = mtcars)
 #' generator <- function(object) {
 #'   rnorm(nobs(object), mean = fitted.values(object), sd = 2)
 #' }
 #' get_p_values_matrix(model, generator = generator, n_sim = 100)
-#'
+#' }
 #' @export
 get_p_values_matrix <- function(model, n_sim = 1000,
                                 test_coefficients = NULL, ...) {
-  if (is.null(test_coefficients)) {
-    test_coefficients <- get_fixef(model)
-  }
-  result <- matrix(NA, nrow = length(test_coefficients), ncol = n_sim)
-  rownames(result) <- names(get_fixef(model))
-
-  for (i in seq_len(n_sim)) {
-    simulation <- simulate_coefficients(
-      model = model,
-      ...
-    )
-    statistic <- compute_statistic(
-      coefs = simulation$coefs,
-      vcov = simulation$vcov,
-      generator_coef = test_coefficients
-    )
-    result[, i] <- compute_p_values(statistic = statistic)
-  }
-  result
+  .Deprecated("get_p_values")
+  get_p_values(model, n_sim = n_sim, test_coefficients = test_coefficients, ...)$pvalues_matrix
 }
 
 #' Generate P-Values from Model Coefficient Simulations
@@ -132,37 +176,10 @@ get_p_values_matrix <- function(model, n_sim = 1000,
 #' model <- lm(mpg ~ wt + hp, data = mtcars)
 #' get_p_values_joint(model, n_sim = 100)
 #' }
-#'
 #' @export
 get_p_values_joint <- function(model, n_sim = 1000, test_coefficients = NULL, ...) {
-  result <- double(n_sim)
-  ginv_uses <- 0
-  if (is.null(test_coefficients)) {
-    test_coefficients <- get_fixef(model)
-  }
-  for (i in seq_len(n_sim)) {
-    simulation <- simulate_coefficients(
-      model = model,
-      ...
-    )
-    p_value <- withCallingHandlers(
-      compute_p_values_joint(
-        coefs = simulation$coefs,
-        vcov = simulation$vcov,
-        generator_coef = test_coefficients
-      ),
-      warning = function(warning) {
-        ginv_uses <<- ginv_uses + 1
-      }
-    )
-    result[i] <- p_value
-  }
-  if (ginv_uses > 0) {
-    warning(
-      "Couldn't inverse vcov from ", ginv_uses, " simulations and used ginv instead"
-    )
-  }
-  result
+  .Deprecated("get_p_values")
+  get_p_values(model, n_sim = n_sim, test_coefficients = test_coefficients, ...)$pvalues_joint
 }
 
 #' Plot Empirical Cumulative Distribution Function (ECDF) of p-values
@@ -192,7 +209,6 @@ get_p_values_joint <- function(model, n_sim = 1000, test_coefficients = NULL, ..
 #' @examples
 #' \dontrun{
 #' fit <- lm(mpg ~ cyl, data = mtcars)
-#'
 #' plot_pvalues_ecdf(fit)
 #' }
 #' @export
@@ -204,32 +220,15 @@ plot_pvalues_ecdf <- function(model,
                               ylab = "Empirical cumulative distribution", xlab = "p-value",
                               args_sim = list(), ...,
                               ask = prod(graphics::par("mfcol")) < length(which) && grDevices::dev.interactive()) {
-  if (ask) {
-    oask <- grDevices::devAskNewPage(TRUE)
-    on.exit(grDevices::devAskNewPage(oask))
-  }
-
-  get_p_values_main_args <- list(model = model)
-  get_p_values_args <- c(get_p_values_main_args, args_sim)
-  p_values <- do.call(get_p_values_matrix, get_p_values_args)
-  for (coef_idx in seq_along(which)) {
-    i <- which[coef_idx]
-    p_value <- p_values[i, ]
-    ecdf_ <- stats::ecdf(p_value)
-    x <- seq(-0.01, 1.01, length.out = 201)
-    plot(x, ecdf_(x), type = "l", main = caption[coef_idx], ylab = ylab, xlab = xlab, ...)
-    if (plot_uniform) {
-      graphics::lines(x, stats::punif(x), lty = 2, col = "gray30")
-      if (uniform_legend) {
-        graphics::legend("topleft",
-          legend = c("p-value", "U(0, 1)"),
-          lty = c(1, 2),
-          col = c("black", "gray30")
-        )
-      }
-    }
-  }
-  return(invisible(p_values))
+  .Deprecated("plot.LD_pvalues")
+  margs <- list(model = model)
+  full_args <- c(margs, args_sim)
+  p_values <- do.call(get_p_values, full_args)
+  plot.LD_pvalues(p_values,
+    which = which, caption = as.list(caption),
+    plot_uniform = plot_uniform, uniform_legend = uniform_legend,
+    ylab = ylab, xlab = xlab, ask = ask, ...
+  )
 }
 
 #' Plot Joint Empirical Cumulative Distribution Function (ECDF) of p-values
@@ -255,21 +254,13 @@ plot_joint_pvalues_ecdf <- function(model,
                                     uniform_legend = TRUE,
                                     ylab = "Empirical cumulative distribution", xlab = "p-value",
                                     args_sim = list(), ...) {
-  get_p_values_main_args <- list(model = model)
-  get_p_values_args <- c(get_p_values_main_args, args_sim)
-  p_value <- do.call(get_p_values_joint, get_p_values_args)
-  ecdf_ <- stats::ecdf(p_value)
-  x <- seq(-0.01, 1.01, length.out = 201)
-  plot(x, ecdf_(x), type = "l", ylab = ylab, xlab = xlab, ...)
-  if (plot_uniform) {
-    graphics::lines(x, stats::punif(x), lty = 2, col = "gray30")
-    if (uniform_legend) {
-      graphics::legend("topleft",
-        legend = c("p-value", "U(0, 1)"),
-        lty = c(1, 2),
-        col = c("black", "gray30")
-      )
-    }
-  }
-  return(invisible(p_value))
+  .Deprecated("plot.LD_pvalues")
+  margs <- list(model = model)
+  full_args <- c(margs, args_sim)
+  p_values <- do.call(get_p_values, full_args)
+  plot.LD_pvalues(p_values,
+    which = length(p_values$test_coefficients) + 1,
+    plot_uniform = plot_uniform, uniform_legend = uniform_legend,
+    ylab = ylab, xlab = xlab, ...
+  )
 }

@@ -27,7 +27,7 @@ Refit a model with a new response.
 }
 \details{
 This function uses \code{new_response} to refit \code{object} replacing its old response variable.
-If the class is \code{merMod} it uses \code{\link[lme4:refit]{lme4::refit()}}, otherwise uses \code{\link[stats:update]{stats::update()}}.
+If the class is \code{merMod} it uses \code{refit}, otherwise uses \code{\link[stats:update]{stats::update()}}.
 
 The default method tries to update the model response using it's \code{\link[stats:model.frame]{stats::model.frame()}},
 if it errors it tries to update the model by inserting the \code{new_response}

@@ -89,3 +89,59 @@ plot_res_vs_linear_predictor <- function(model, residual_fn = stats::rstandard,
 
   return(invisible(list(x = linear_predictor, y = y)))
 }
+
+#' Plot Joint Empirical Cumulative Distribution Function (ECDF) of p-values
+#'
+#' @param x LD_pvalues object, usually the result of [get_p_values()]
+#' @param which A vector specifying the indices of coefficients to plot.
+#'  If index is bigger than the number of coefficients it plots the joint p_value.
+#' @param caption A list with caption for each plot.
+#' @param plot_uniform Logical. If TRUE, plot uniform distribution.
+#' @param uniform_legend Logical. If TRUE, a legend is added to the plot to
+#'   distinguish between the p-value and U(0, 1) curves. Defaults to TRUE.
+#' @param ylab The label for the y-axis. Defaults to "Empirical cumulative distribution".
+#' @param xlab The label for the x-axis. Defaults to "p-value".
+#' @param ... extra arguments passed to [graphics::plot]
+#' @param ask Logical. If TRUE, the user is prompted before each plot. Defaults
+#'   to TRUE if in an interactive session and the number of plots is greater
+#'   than the available space; otherwise, FALSE.
+#'
+#' @return A vector of joint p-values for all coefficients.
+#'
+#' @examples
+#' model <- lm(mpg ~ wt + hp, data = mtcars)
+#' p_values_ld <- get_p_values(model, n_sim = 100)
+#' plot(p_values_ld)
+#' @export
+plot.LD_pvalues <- function(x,
+                            which = seq_len(length(x$test_coefficients) + 1),
+                            caption = as.list(paste("ECDF of", c(names(x$test_coefficients), "all coefficients"))),
+                            plot_uniform = TRUE, uniform_legend = TRUE,
+                            ylab = "Empirical cumulative distribution", xlab = "p-value",
+                            ...,
+                            ask = prod(graphics::par("mfcol")) < length(which) && grDevices::dev.interactive()) {
+  if (ask) {
+    oask <- grDevices::devAskNewPage(TRUE)
+    on.exit(grDevices::devAskNewPage(oask))
+  }
+  alpha_ <- seq(-0.01, 1.01, length.out = 201)
+  for (i in which) {
+    p_values <- if (i > length(x$test_coefficients)) x$pvalues_joint else x$pvalues_matrix[i, ]
+    ecdf_ <- stats::ecdf(p_values)
+    plot(
+      alpha_, ecdf_(alpha_),
+      type = "l",
+      main = caption[[i]], ylab = ylab, xlab = xlab, ...
+    )
+    if (plot_uniform) {
+      graphics::lines(alpha_, stats::punif(alpha_), lty = 2, col = "gray30")
+      if (uniform_legend) {
+        graphics::legend("topleft",
+          legend = c("p-value", "U(0, 1)"),
+          lty = c(1, 2),
+          col = c("black", "gray30")
+        )
+      }
+    }
+  }
+}
