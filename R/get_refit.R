@@ -17,7 +17,7 @@ change_reponse_formula <- function(x) {
 #' Refit a model with a new response.
 #'
 #' This function uses `new_response` to refit `object` replacing its old response variable.
-#' If the class is `merMod` it uses [lme4::refit()], otherwise uses [stats::update()].
+#' If the class is `merMod` it uses `refit`, otherwise uses [stats::update()].
 #'
 #' The default method tries to update the model response using it's [stats::model.frame()],
 #' if it errors it tries to update the model by inserting the `new_response`

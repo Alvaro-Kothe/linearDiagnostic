@@ -13,9 +13,9 @@ get_p_values_matrix(model, n_sim = 1000, test_coefficients = NULL, ...)
 
 \item{test_coefficients}{Numeric vector. A vector with values to be used to compute
 the test statistic. It should be the coefficients that was used to compute
-the fitted values of the response. If \code{NULL} defaults to coef(model)}
+the fitted values of the response. If \code{NULL} defaults to model fixed effects}
 
-\item{...}{Additional arguments to be passed to \code{simulate_coefficients}.}
+\item{...}{Additional arguments to be passed to \code{get_p_values}.}
 }
 \value{
 A matrix where each column represents the p-values obtained from a simulation.
@@ -25,10 +25,11 @@ This function generates a matrix of p-values by simulating coefficients from
 a given model and computing test statistics for each simulation.
 }
 \examples{
+\dontrun{
 model <- lm(mpg ~ wt + hp, data = mtcars)
 generator <- function(object) {
   rnorm(nobs(object), mean = fitted.values(object), sd = 2)
 }
 get_p_values_matrix(model, generator = generator, n_sim = 100)
-
+}
 }

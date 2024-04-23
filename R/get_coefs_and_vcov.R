@@ -43,3 +43,27 @@ get_vcov <- function(object) {
 get_vcov.default <- function(object) {
   as.matrix(stats::vcov(object))
 }
+
+#' Did the model converged
+#'
+#' Retrieves if the model converged.
+#'
+#' @param object A model to check for convergence.
+#' @return A boolean value.
+#' @export
+get_converged <- function(object) {
+  UseMethod("get_converged")
+}
+
+#' @rdname get_converged
+#' @export
+get_converged.default <- function(object) {
+  object$converged
+}
+
+#' @rdname get_converged
+#' @export
+get_converged.merMod <- function(object) {
+  opt <- object@optinfo
+  opt$conv$opt == 0 && length(opt$warnings) == 0
+}

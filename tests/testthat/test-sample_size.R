@@ -1,116 +1,70 @@
-test_that("simulate_coefficients() returns a list with two components", {
+simple_lm_fit <- function() {
   x <- c(1, 3, 5, 7)
   y <- c(2, 3, 6, 9)
-  fit <- lm(y ~ x)
+  lm(y ~ x)
+}
 
-  simulation_result <- simulate_coefficients(fit)
-
-  expect_named(simulation_result, c("coefs", "vcov"))
-})
-
-test_that("test_coefficients generate different results", {
-  x <- c(1, 3, 5, 7)
-  y <- c(2, 3, 6, 9)
-  fit <- lm(y ~ x)
-  set.seed(1)
-  matrix_regular <- get_p_values_matrix(fit, n_sim = 10)
-
-  test_coefs <- c(1000000, 1000000)
-  set.seed(1)
-  matrix_test_coefs <- get_p_values_matrix(fit, n_sim = 10, test_coefficients = test_coefs)
-
-  # Test if all elements are close to 0, as test_coefs were very high
-  expect_true(all(matrix_test_coefs < 1e-8))
-  expect_false(identical(matrix_regular, matrix_test_coefs))
-})
-
-test_that("rownames from get_p_values_matrix is the same as model's coefficients names", {
-  df <- data.frame("foo" = c(1, 2, 3, 7), "bar" = c(2, 3, 1, 9), "y" = c(3, 5, 1, 2))
-  fit <- lm(y ~ foo + bar, data = df)
-  mat <- get_p_values_matrix(fit, n_sim = 2)
-  expect_named(mat[, 1], c("(Intercept)", "foo", "bar"))
-})
-
-test_that("simulate_coefficients() coefs length is equal to number of parameters estimated", {
-  x <- c(1, 3, 5, 7)
-  y <- c(2, 3, 6, 9)
-  fit <- lm(y ~ x)
-
-  simulation_result <- simulate_coefficients(fit)
-
-  expect_length(simulation_result$coefs, 2)
-  expect_identical(dim(simulation_result$vcov), c(2L, 2L))
-})
-
-test_that("set.seed works with simulate_coefficients()", {
-  x <- c(1, 3, 5, 7)
-  y <- c(2, 3, 6, 9)
-  fit <- lm(y ~ x)
+test_that("set.seed generates same stuff", {
+  fit <- simple_lm_fit()
 
   set.seed(1)
-  simulation_result1 <- simulate_coefficients(fit)
+  simulation_result1 <- get_p_values(fit, n_sim = 5)
 
   set.seed(1)
-  simulation_result2 <- simulate_coefficients(fit)
+  simulation_result2 <- get_p_values(fit, n_sim = 5)
 
   expect_identical(simulation_result1, simulation_result2)
 })
 
-test_that("simulate_coefficients() with generator yield different results", {
-  x <- c(1, 3, 5, 7)
-  y <- c(2, 3, 6, 9)
-  fit <- lm(y ~ x)
-
+test_that("test_coefficients generate different results", {
+  fit <- simple_lm_fit()
   set.seed(1)
-  simulation_result1 <- simulate_coefficients(fit)
+  p_values_regular <- get_p_values(fit, n_sim = 10)
 
+  test_coefs <- c(1000000, 1000000)
   set.seed(1)
-  simulation_result2 <- simulate_coefficients(fit,
-    generator = function(model) rgamma(stats::nobs(model), abs(stats::fitted.values(model)))
-  )
+  p_values_test_coefs <- get_p_values(fit, n_sim = 10, test_coefficients = test_coefs)
 
+  # Test if all elements are close to 0, as test_coefs were very high
+  expect_true(all(p_values_test_coefs$pvalues_joint < 1e-8))
+  expect_true(all(p_values_test_coefs$pvalues_matrix < 1e-8))
+  expect_false(identical(p_values_regular, p_values_test_coefs))
+})
+
+test_that("rownames matrix is the same as model's coefficients names", {
+  df <- data.frame("foo" = c(1, 2, 3, 7), "bar" = c(2, 3, 1, 9), "y" = c(3, 5, 1, 2))
+  fit <- lm(y ~ foo + bar, data = df)
+  p_values <- get_p_values(fit, n_sim = 2)
+  expect_named(p_values$pvalues_matrix[, 1], c("(Intercept)", "foo", "bar"))
+})
+
+test_that("generator yield different results", {
+  fit <- simple_lm_fit()
+
+  suppressWarnings({
+    set.seed(1)
+    simulation_result1 <- get_p_values(fit, n_sim = 5)
+    set.seed(1)
+    simulation_result2 <- get_p_values(fit,
+      n_sim = 5,
+      generator = function(model) rgamma(stats::nobs(model), abs(stats::fitted.values(model)))
+    )
+  })
   expect_false(identical(simulation_result1, simulation_result2))
 })
 
 test_that("p_values are equal with deterministic generator", {
-  x <- c(1, 3, 5, 7)
-  y <- c(2, 3, 6, 9)
-  fit <- lm(y ~ x)
-  generator <- function(model) seq_len(nobs(model))
+  fit <- simple_lm_fit()
+  generator <- function(...) 1:4
   suppressWarnings(
-    p_values <- get_p_values_joint(fit, n_sim = 5, generator = generator)
+    p_values <- get_p_values(fit, n_sim = 5, generator = generator)
   )
-  expect_setequal(p_values, p_values[1])
+  expect_setequal(p_values$pvalues_joint, p_values$pvalues_joint[1])
+  expect_setequal(p_values$pvalues_matrix[1, ], p_values$pvalues_matrix[1, 1])
+  expect_setequal(p_values$pvalues_matrix[2, ], p_values$pvalues_matrix[2, 1])
 })
 
-test_that("plot_*_pvalues_ecdf work", {
-  x <- c(1, 3, 5, 7)
-  y <- c(2, 3, 6, 9)
-  fit <- lm(y ~ x)
-  mpg_fit <- lm(mpg ~ ., data = mtcars)
-
-  set.seed(1)
-  expect_no_error(plot_joint_pvalues_ecdf(fit, args_sim = list(n_sim = 10)))
-  suppressWarnings(
-    expect_warning(plot_joint_pvalues_ecdf(fit,
-      args_sim = list(n_sim = 5, this_argument_doesnt_exist = NULL)
-    ))
-  )
-  expect_no_error(plot_pvalues_ecdf(fit, args_sim = list(n_sim = 10)))
-  expect_no_error(plot_pvalues_ecdf(fit, args_sim = list(n_sim = 10), ask = TRUE))
-  expect_no_error(plot_pvalues_ecdf(fit, args_sim = list(n_sim = 10), ask = FALSE))
-  expect_no_error(plot_joint_pvalues_ecdf(fit,
-    args_sim = list(n_sim = 10),
-    plot_uniform = TRUE, uniform_legend = FALSE
-  ))
-  expect_no_error(plot_joint_pvalues_ecdf(fit, args_sim = list(n_sim = 10), plot_uniform = TRUE))
-  expect_no_error(plot_joint_pvalues_ecdf(fit, args_sim = list(n_sim = 10), plot_uniform = FALSE))
-  expect_no_error(plot_pvalues_ecdf(fit, args_sim = list(n_sim = 10), plot_uniform = TRUE))
-  expect_no_error(plot_pvalues_ecdf(fit, args_sim = list(n_sim = 10), plot_uniform = TRUE, uniform_legend = FALSE))
-  expect_no_error(plot_pvalues_ecdf(fit, args_sim = list(n_sim = 10), plot_uniform = FALSE))
-})
-
-test_that("plot_*_pvalues throw warning with singular matrix", {
+test_that("get_p_values throw warning with singular matrix", {
   params <- c(1, .2, .5, -.2, -.5, 0, 0.1, 0.01, 3, 5)
   set.seed(1)
   model_matrix <- matrix(rnorm(13 * 10),
@@ -125,13 +79,13 @@ test_that("plot_*_pvalues throw warning with singular matrix", {
     fit <- glm(y ~ model_matrix + 1, family = poisson())
 
     expect_warning(
-      plot_joint_pvalues_ecdf(fit, args_sim = list(n_sim = 10)),
-      "Couldn't inverse vcov from \\d+ simulations and used ginv instead"
+      get_p_values(fit, n_sim = 10),
+      "Couldn't inverse vcov from \\d+ simulations and used `MASS::ginv` instead"
     )
   })
 })
 
-test_that("simulate_coefficients() works with poisson with offset", {
+test_that("get_p_values works with poisson with offset", {
   n <- 5
   offset_ <- rpois(n, 10000)
   x <- runif(n)
@@ -139,20 +93,34 @@ test_that("simulate_coefficients() works with poisson with offset", {
 
   suppressWarnings({
     fit <- glm(y ~ x + offset(offset_), family = poisson())
-    sim <- simulate_coefficients(fit)
+    p_values <- get_p_values(fit, n_sim = 5)
   })
 
-  expect_length(sim$coefs, 2)
+  expect_length(p_values$simulation_fixef[[1]], 2)
+})
+
+test_that("get_p_values convergence for lm is NA", {
+  fit <- simple_lm_fit()
+  p_values <- get_p_values(fit, n_sim = 2)
+  expect_equal(p_values$converged, c(NA, NA))
+})
+
+test_that("get_p_values convergence for glm is logical", {
+  fit <- glm(c(1, 3, 5) ~ c(1, 2, 3), family = poisson())
+  set.seed(1)
+  p_values <- get_p_values(fit, n_sim = 2)
+  expect_equal(p_values$converged, c(TRUE, TRUE))
 })
 
 test_that("Can compute p_values from merMod class", {
   data("sleepstudy", package = "lme4")
   fit <- lme4::lmer(Reaction ~ Days + (Days | Subject), sleepstudy)
-  expect_no_error(get_p_values_joint(fit, n_sim = 2))
-  expect_no_error(get_p_values_matrix(fit, n_sim = 2))
+  set.seed(1)
+  expect_no_error(p_values <- get_p_values(fit, n_sim = 2))
+  expect_equal(p_values$converged, c(TRUE, TRUE))
 })
 
-test_that("simulate_coefficients() with custom method works", {
+test_that("get_p_values() with custom method works", {
   foo <- function(formula, data) {
     model_frame <- model.frame(formula, data = data)
     y <- model.response(model_frame, type = "numeric")
@@ -208,12 +176,12 @@ test_that("simulate_coefficients() with custom method works", {
 
   fit <- foo(mpg ~ cyl, mtcars)
 
-  sim <- simulate_coefficients(fit)
+  sim <- get_p_values(fit, n_sim = 2)
 
-  expect_identical(sim$coefs, c(NA, NA))
+  expect_identical(sim$simulation_fixef[[1]], c(NA, NA))
 
   expect_identical(
-    sim$vcov,
+    sim$simulation_vcov[[1]],
     matrix(NA, nrow = 2, ncol = 2)
   )
 
