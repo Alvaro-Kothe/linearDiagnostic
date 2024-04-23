@@ -90,12 +90,28 @@ plot_res_vs_linear_predictor <- function(model, residual_fn = stats::rstandard,
   return(invisible(list(x = linear_predictor, y = y)))
 }
 
-#' Plot Joint Empirical Cumulative Distribution Function (ECDF) of p-values
+#' Plot Empirical Cumulative Distribution Function (ECDF) of p-values
+#'
+#' This function creates several plots with the empirical cumulative distribution
+#' of the p-values obtained thorugh simulation.
+#'
+#' If the asymptotic approximation is valid the distribution of the p-values
+#' should be close to an uniform distribution.
+#' Discrepancies are highlighted, by default it verifies the significance on the
+#' most commonly used significance values are 0.01, 0.05 and 0.10.
+#'
+#' The reported KS (Kolmogorov-Smirnov) test is the result of the "two-sided" [stats::ks.test()] function
+#' comparing the observed p-values distribution with the uniform.
+#' The test may reject the KS test due to few simulations, make sure that the lines
+#' shown in the plot are smooth before drawing any conclusions.
 #'
 #' @param x LD_pvalues object, usually the result of [get_p_values()]
 #' @param which A vector specifying the indices of coefficients to plot.
 #'  If index is bigger than the number of coefficients it plots the joint p_value.
 #' @param caption A list with caption for each plot.
+#' @param ks_test If `TRUE` inserts Kolmogorov-Smirnov p-value in the graphic.
+#' @param signif Points to verify discrepancy.
+#' @param discrepancy_tol Threshold to consider point discrepant.
 #' @param plot_uniform Logical. If TRUE, plot uniform distribution.
 #' @param uniform_legend Logical. If TRUE, a legend is added to the plot to
 #'   distinguish between the p-value and U(0, 1) curves. Defaults to TRUE.
@@ -116,6 +132,8 @@ plot_res_vs_linear_predictor <- function(model, residual_fn = stats::rstandard,
 plot.LD_pvalues <- function(x,
                             which = seq_len(length(x$test_coefficients) + 1),
                             caption = as.list(paste("ECDF of", c(names(x$test_coefficients), "all coefficients"))),
+                            ks_test = TRUE, signif = c(0.01, 0.05, 0.10),
+                            discrepancy_tol = .1,
                             plot_uniform = TRUE, uniform_legend = TRUE,
                             ylab = "Empirical cumulative distribution", xlab = "p-value",
                             ...,
@@ -124,24 +142,67 @@ plot.LD_pvalues <- function(x,
     oask <- grDevices::devAskNewPage(TRUE)
     on.exit(grDevices::devAskNewPage(oask))
   }
-  alpha_ <- seq(-0.01, 1.01, length.out = 201)
   for (i in which) {
     p_values <- if (i > length(x$test_coefficients)) x$pvalues_joint else x$pvalues_matrix[i, ]
-    ecdf_ <- stats::ecdf(p_values)
-    plot(
-      alpha_, ecdf_(alpha_),
-      type = "l",
-      main = caption[[i]], ylab = ylab, xlab = xlab, ...
+    plot_ecdf_pvalue(p_values,
+      ks_test = ks_test, signif = signif,
+      discrepancy_tol = discrepancy_tol,
+      plot_uniform = plot_uniform, uniform_legend = uniform_legend,
+      main = caption[[i]], xlab = xlab, ylab = ylab, ...
     )
-    if (plot_uniform) {
-      graphics::lines(alpha_, stats::punif(alpha_), lty = 2, col = "gray30")
-      if (uniform_legend) {
-        graphics::legend("topleft",
-          legend = c("p-value", "U(0, 1)"),
-          lty = c(1, 2),
-          col = c("black", "gray30")
-        )
-      }
+  }
+}
+
+#' Plot Empirical Cumulative Distribution Function (ECDF) of p-values
+#'
+#' @inheritParams plot.LD_pvalues
+#' @param p_values vector of p-values
+#' @param main main caption passed to [plot]
+#' @export
+plot_ecdf_pvalue <- function(p_values,
+                             ks_test, signif,
+                             discrepancy_tol,
+                             plot_uniform, uniform_legend,
+                             main, ylab, xlab, ...) {
+  ecdf_ <- stats::ecdf(p_values)
+  alpha_ <- seq(-0.01, 1.01, length.out = 201)
+  plot(
+    alpha_, ecdf_(alpha_),
+    type = "l",
+    main = main, ylab = ylab, xlab = xlab, ...
+  )
+  if (ks_test) {
+    ks_res <- test_uniform_dist(p_values)$p.value
+    graphics::legend("top", legend = sprintf("KS p-value: %.5f", ks_res), bty = "n")
+  }
+  discrepancies <- character()
+  for (expected_rejection in signif) {
+    observed <- ecdf_(expected_rejection)
+    discrepancy <- (observed / expected_rejection) - 1.0
+    if (abs(discrepancy) > discrepancy_tol) {
+      discrepancies <- c(discrepancies, sprintf(
+        "%.2f: %.3f (%+.0f%%)",
+        expected_rejection, observed, discrepancy * 100
+      ))
+      graphics::segments(expected_rejection, 0.0, y1 = observed, lty = 2)
     }
   }
+  if (length(discrepancies) > 0) {
+    graphics::legend("bottomright", discrepancies, bty = "n")
+  }
+  if (plot_uniform) {
+    graphics::lines(alpha_, stats::punif(alpha_), lty = 2, col = "gray30")
+    if (uniform_legend) {
+      graphics::legend("topleft",
+        legend = c("p-value", "U(0, 1)"),
+        lty = c(1, 2),
+        col = c("black", "gray30")
+      )
+    }
+  }
+}
+
+
+test_uniform_dist <- function(x) {
+  stats::ks.test(x, stats::punif)
 }

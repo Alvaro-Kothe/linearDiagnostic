@@ -51,6 +51,10 @@ compute_p_values_joint <- function(coefs, vcov, generator_coef) {
 #' Wald statistic using the `test_coefficients`. The p-values are also obtained
 #' from a chi-squared distribution with `length(test_coefficients)` d.f.
 #'
+#' The p-values are supposed to auxiliar the asymptotic approximation.
+#' They are reliable only for tests that depends on them, for example
+#' [glm] with "poisson" family.
+#'
 #' @param model A model compatible with [get_refit()], [get_fixef()] and [get_vcov()] methods.
 #' @param generator An optional function with one argument to generate new response vectors.
 #'   If NULL, the model's [simulate()] method is used. Otherwise, the generator
@@ -75,9 +79,13 @@ compute_p_values_joint <- function(coefs, vcov, generator_coef) {
 #' }
 #' @seealso [plot.LD_pvalues()] for plotting.
 #' @examples
-#' model <- lm(mpg ~ wt + hp, data = mtcars)
+#' # from help("glm")
+#' counts <- c(18, 17, 15, 20, 10, 20, 25, 13, 12)
+#' outcome <- gl(3, 1, 9)
+#' treatment <- gl(3, 3)
+#' model <- glm(counts ~ outcome + treatment, family = poisson())
 #' generator <- function(object) {
-#'   rnorm(nobs(object), mean = fitted.values(object), sd = 2)
+#'   MASS::rnegbin(fitted.values(object), theta = 4.5)
 #' }
 #' get_p_values(model, generator = generator, n_sim = 100)
 #'

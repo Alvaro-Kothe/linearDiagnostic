@@ -2,12 +2,15 @@
 % Please edit documentation in R/diagnostic_plots.R
 \name{plot.LD_pvalues}
 \alias{plot.LD_pvalues}
-\title{Plot Joint Empirical Cumulative Distribution Function (ECDF) of p-values}
+\title{Plot Empirical Cumulative Distribution Function (ECDF) of p-values}
 \usage{
 \method{plot}{LD_pvalues}(
   x,
   which = seq_len(length(x$test_coefficients) + 1),
   caption = as.list(paste("ECDF of", c(names(x$test_coefficients), "all coefficients"))),
+  ks_test = TRUE,
+  signif = c(0.01, 0.05, 0.1),
+  discrepancy_tol = 0.1,
   plot_uniform = TRUE,
   uniform_legend = TRUE,
   ylab = "Empirical cumulative distribution",
@@ -23,6 +26,12 @@
 If index is bigger than the number of coefficients it plots the joint p_value.}
 
 \item{caption}{A list with caption for each plot.}
+
+\item{ks_test}{If \code{TRUE} inserts Kolmogorov-Smirnov p-value in the graphic.}
+
+\item{signif}{Points to verify discrepancy.}
+
+\item{discrepancy_tol}{Threshold to consider point discrepant.}
 
 \item{plot_uniform}{Logical. If TRUE, plot uniform distribution.}
 
@@ -43,7 +52,19 @@ than the available space; otherwise, FALSE.}
 A vector of joint p-values for all coefficients.
 }
 \description{
-Plot Joint Empirical Cumulative Distribution Function (ECDF) of p-values
+This function creates several plots with the empirical cumulative distribution
+of the p-values obtained thorugh simulation.
+}
+\details{
+If the asymptotic approximation is valid the distribution of the p-values
+should be close to an uniform distribution.
+Discrepancies are highlighted, by default it verifies the significance on the
+most commonly used significance values are 0.01, 0.05 and 0.10.
+
+The reported KS (Kolmogorov-Smirnov) test is the result of the "two-sided" \code{\link[stats:ks.test]{stats::ks.test()}} function
+comparing the observed p-values distribution with the uniform.
+The test may reject the KS test due to few simulations, make sure that the lines
+shown in the plot are smooth before drawing any conclusions.
 }
 \examples{
 model <- lm(mpg ~ wt + hp, data = mtcars)
