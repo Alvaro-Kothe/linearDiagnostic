@@ -16,5 +16,5 @@ test_that("plot_*_pvalues_ecdf work", {
   y <- c(2, 3, 6, 9)
   fit <- lm(y ~ x)
   p_values <- get_p_values(fit, n_sim = 10)
-  expect_no_error(plot(p_values))
+  expect_no_error(plot(p_values, ask = FALSE))
 })

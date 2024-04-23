@@ -58,11 +58,19 @@ is obtained from a chi-squared distribution with one d.f.
 The joint Wad test computes the inverse from the vcov result and computes the
 Wald statistic using the \code{test_coefficients}. The p-values are also obtained
 from a chi-squared distribution with \code{length(test_coefficients)} d.f.
+
+The p-values are supposed to auxiliar the asymptotic approximation.
+They are reliable only for tests that depends on them, for example
+\link{glm} with "poisson" family.
 }
 \examples{
-model <- lm(mpg ~ wt + hp, data = mtcars)
+# from help("glm")
+counts <- c(18, 17, 15, 20, 10, 20, 25, 13, 12)
+outcome <- gl(3, 1, 9)
+treatment <- gl(3, 3)
+model <- glm(counts ~ outcome + treatment, family = poisson())
 generator <- function(object) {
-  rnorm(nobs(object), mean = fitted.values(object), sd = 2)
+  MASS::rnegbin(fitted.values(object), theta = 4.5)
 }
 get_p_values(model, generator = generator, n_sim = 100)
 
