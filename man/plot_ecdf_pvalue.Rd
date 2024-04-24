@@ -6,14 +6,14 @@
 \usage{
 plot_ecdf_pvalue(
   p_values,
-  ks_test,
-  signif,
-  discrepancy_tol,
-  plot_uniform,
-  uniform_legend,
-  main,
-  ylab,
-  xlab,
+  ks_test = TRUE,
+  signif = c(0.01, 0.05, 0.1),
+  discrepancy_tol = 0.1,
+  plot_uniform = TRUE,
+  uniform_legend = TRUE,
+  main = "",
+  ylab = "Empirical cumulative distribution",
+  xlab = "p-value",
   ...
 )
 }
