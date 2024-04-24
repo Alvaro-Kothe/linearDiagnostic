@@ -38,8 +38,11 @@ compute_p_values_joint <- function(coefs, vcov, generator_coef) {
 #' This function generates p-values by simulating coefficients from
 #' a given model and computing Wald test statistics for each simulation.
 #'
-#' Generate new responses with [stats::simulate()] if generator is `NULL`.
-#' If `generator` is provided, it replicates the `generator(model)` by `n_sim`.
+#' If `responses` is provided it will be used to refit the new model,
+#' otherwise if `generator` is provided it will replicate generator by `n_sim`.
+#' Otherwise, uses [stats::simulate()].
+#' The length of each new response should be the same as the one obtained from
+#' [stats::nobs].
 #'
 #' For each new response calls [get_refit()] to generate a new model with the new
 #' response. It gets the fixed effects and the variance and covariance matrix with
@@ -56,9 +59,8 @@ compute_p_values_joint <- function(coefs, vcov, generator_coef) {
 #' [glm] with "poisson" family.
 #'
 #' @param model A model compatible with [get_refit()], [get_fixef()] and [get_vcov()] methods.
+#' @param responses An optional list with n_sim to be used as response to refit the model.
 #' @param generator An optional function with one argument to generate new response vectors.
-#'   If NULL, the model's [simulate()] method is used. Otherwise, the generator
-#'   function is used to simulate responses.
 #' @param n_sim The number of simulations to perform.
 #' @param test_coefficients Numeric vector. A vector with values to be used to compute
 #'   the test statistic. It should be the coefficients that was used to compute
@@ -84,13 +86,14 @@ compute_p_values_joint <- function(coefs, vcov, generator_coef) {
 #' outcome <- gl(3, 1, 9)
 #' treatment <- gl(3, 3)
 #' model <- glm(counts ~ outcome + treatment, family = poisson())
-#' generator <- function(object) {
-#'   MASS::rnegbin(fitted.values(object), theta = 4.5)
-#' }
-#' get_p_values(model, generator = generator, n_sim = 100)
+#' new_responses <- replicate(100, MASS::rnegbin(fitted.values(model), theta = 4.5), simplify = FALSE)
+#' get_p_values(model, responses = new_responses, n_sim = 100)
 #'
+#' ## Should yield similar results
+#' generator <- function(object) MASS::rnegbin(fitted.values(object), theta = 4.5)
+#' get_p_values(model, generator = generator, n_sim = 100)
 #' @export
-get_p_values <- function(model, n_sim = 1000, generator = NULL,
+get_p_values <- function(model, n_sim = 1000, responses = NULL, generator = NULL,
                          test_coefficients = NULL, ...) {
   out <- list()
   if (is.null(test_coefficients)) {
@@ -104,14 +107,20 @@ get_p_values <- function(model, n_sim = 1000, generator = NULL,
   out$simulation_vcov <- list()
   out$converged <- rep(NA, n_sim)
   out$ginv_used <- logical(n_sim)
-  out$responses <- if (is.null(generator)) {
-    stats::simulate(model, n_sim)
+  out$responses <- if (!is.null(responses)) {
+    if (!is.list(responses) || length(responses) != n_sim) {
+      stop("`new_responses` should be a list with length `n_sim`")
+    }
+    responses
+  } else if (!is.null(generator)) {
+    replicate(n_sim, generator(model), simplify = FALSE)
   } else {
-    replicate(n_sim, generator(model))
+    stats::simulate(model, n_sim)
   }
 
   for (i in seq_len(n_sim)) {
     y_star <- out$responses[[i]]
+    stopifnot(length(y_star) == stats::nobs(model))
     model_refit <- get_refit(model, y_star, ...)
     fef <- get_fixef(model_refit)
     vc <- get_vcov(model_refit)

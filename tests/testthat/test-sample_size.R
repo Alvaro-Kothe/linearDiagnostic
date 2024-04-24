@@ -53,6 +53,15 @@ test_that("generator yield different results", {
   expect_false(identical(simulation_result1, simulation_result2))
 })
 
+test_that("Same response yield same result", {
+  fit <- simple_lm_fit()
+  set.seed(1)
+  responses <- simulate(fit, 5)
+  sim1 <- get_p_values(fit, n_sim = 5, responses = responses)
+  sim2 <- get_p_values(fit, n_sim = 5, responses = responses)
+  expect_identical(sim1, sim2)
+})
+
 test_that("p_values are equal with deterministic generator", {
   fit <- simple_lm_fit()
   generator <- function(...) 1:4
@@ -145,6 +154,11 @@ test_that("get_p_values() with custom method works", {
   }
 
   # nolint start: object_name_linter
+  nobs.foo <- function(object, ...) {
+    length(object$y)
+  }
+  assign("nobs.foo", nobs.foo, envir = .GlobalEnv)
+
   simulate.foo <- function(object, nsim = 1, seed = NULL, ...) {
     mu <- object$fitted.values
 
@@ -186,7 +200,10 @@ test_that("get_p_values() with custom method works", {
   )
 
   rm(
-    list = c("simulate.foo", "update.foo", "vcov.foo", "coef.foo", "formula.foo"),
+    list = c(
+      "simulate.foo", "update.foo", "vcov.foo", "coef.foo", "formula.foo",
+      "nobs.foo"
+    ),
     envir = .GlobalEnv
   )
 })

@@ -7,6 +7,7 @@
 get_p_values(
   model,
   n_sim = 1000,
+  responses = NULL,
   generator = NULL,
   test_coefficients = NULL,
   ...
@@ -17,9 +18,9 @@ get_p_values(
 
 \item{n_sim}{The number of simulations to perform.}
 
-\item{generator}{An optional function with one argument to generate new response vectors.
-If NULL, the model's \code{\link[=simulate]{simulate()}} method is used. Otherwise, the generator
-function is used to simulate responses.}
+\item{responses}{An optional list with n_sim to be used as response to refit the model.}
+
+\item{generator}{An optional function with one argument to generate new response vectors.}
 
 \item{test_coefficients}{Numeric vector. A vector with values to be used to compute
 the test statistic. It should be the coefficients that was used to compute
@@ -46,8 +47,11 @@ This function generates p-values by simulating coefficients from
 a given model and computing Wald test statistics for each simulation.
 }
 \details{
-Generate new responses with \code{\link[stats:simulate]{stats::simulate()}} if generator is \code{NULL}.
-If \code{generator} is provided, it replicates the \code{generator(model)} by \code{n_sim}.
+If \code{responses} is provided it will be used to refit the new model,
+otherwise if \code{generator} is provided it will replicate generator by \code{n_sim}.
+Otherwise, uses \code{\link[stats:simulate]{stats::simulate()}}.
+The length of each new response should be the same as the one obtained from
+\link[stats:nobs]{stats::nobs}.
 
 For each new response calls \code{\link[=get_refit]{get_refit()}} to generate a new model with the new
 response. It gets the fixed effects and the variance and covariance matrix with
@@ -69,11 +73,12 @@ counts <- c(18, 17, 15, 20, 10, 20, 25, 13, 12)
 outcome <- gl(3, 1, 9)
 treatment <- gl(3, 3)
 model <- glm(counts ~ outcome + treatment, family = poisson())
-generator <- function(object) {
-  MASS::rnegbin(fitted.values(object), theta = 4.5)
-}
-get_p_values(model, generator = generator, n_sim = 100)
+new_responses <- replicate(100, MASS::rnegbin(fitted.values(model), theta = 4.5), simplify = FALSE)
+get_p_values(model, responses = new_responses, n_sim = 100)
 
+## Should yield similar results
+generator <- function(object) MASS::rnegbin(fitted.values(object), theta = 4.5)
+get_p_values(model, generator = generator, n_sim = 100)
 }
 \seealso{
 \code{\link[=plot.LD_pvalues]{plot.LD_pvalues()}} for plotting.
