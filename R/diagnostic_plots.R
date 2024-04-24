@@ -160,10 +160,12 @@ plot.LD_pvalues <- function(x,
 #' @param main main caption passed to [plot]
 #' @export
 plot_ecdf_pvalue <- function(p_values,
-                             ks_test, signif,
-                             discrepancy_tol,
-                             plot_uniform, uniform_legend,
-                             main, ylab, xlab, ...) {
+                             ks_test = TRUE, signif = c(0.01, 0.05, 0.10),
+                             discrepancy_tol = 0.10,
+                             plot_uniform = TRUE, uniform_legend = TRUE,
+                             main = "",
+                             ylab = "Empirical cumulative distribution", xlab = "p-value",
+                             ...) {
   ecdf_ <- stats::ecdf(p_values)
   alpha_ <- seq(-0.01, 1.01, length.out = 201)
   plot(
