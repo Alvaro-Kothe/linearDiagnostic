@@ -21,3 +21,8 @@ A boolean value.
 \description{
 Retrieves if the model converged.
 }
+\details{
+The default method retrieves \code{object$converged}.
+For models of class merMod it verifies if the infinity norm of the
+Newthon-Raphson step is less than 0.0001.
+}
