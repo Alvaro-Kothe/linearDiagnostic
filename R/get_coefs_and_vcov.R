@@ -48,6 +48,10 @@ get_vcov.default <- function(object) {
 #'
 #' Retrieves if the model converged.
 #'
+#' The default method retrieves `object$converged`.
+#' For models of class merMod it verifies if the infinity norm of the
+#' Newthon-Raphson step is less than 0.0001.
+#'
 #' @param object A model to check for convergence.
 #' @return A boolean value.
 #' @export
@@ -64,6 +68,7 @@ get_converged.default <- function(object) {
 #' @rdname get_converged
 #' @export
 get_converged.merMod <- function(object) {
-  opt <- object@optinfo
-  opt$conv$opt == 0 && length(opt$warnings) == 0
+  nr_step <- with(object@optinfo$deriv, solve(Hessian, gradient))
+  norm_inf <- max(abs(nr_step))
+  norm_inf < 1e-4
 }
