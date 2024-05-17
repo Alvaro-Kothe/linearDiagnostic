@@ -102,7 +102,7 @@ get_p_values <- function(model, n_sim = 1000, responses = NULL, generator = NULL
   out$test_coefficients <- test_coefficients
   out$pvalues_matrix <- matrix(NA, nrow = length(test_coefficients), ncol = n_sim)
   rownames(out$pvalues_matrix) <- names(test_coefficients)
-  out$pvalues_joint <- numeric(n_sim)
+  out$pvalues_joint <- rep(NA_real_, n_sim)
   out$simulation_fixef <- list()
   out$simulation_vcov <- list()
   out$converged <- rep(NA, n_sim)
@@ -121,23 +121,28 @@ get_p_values <- function(model, n_sim = 1000, responses = NULL, generator = NULL
   for (i in seq_len(n_sim)) {
     y_star <- out$responses[[i]]
     stopifnot(length(y_star) == stats::nobs(model))
-    model_refit <- get_refit(model, y_star, ...)
-    fef <- get_fixef(model_refit)
-    vc <- get_vcov(model_refit)
-    try(out$converged[i] <- get_converged(model_refit), silent = TRUE)
-    out$simulation_fixef[[i]] <- fef
-    out$simulation_vcov[[i]] <- vc
+    try(
+      {
+        model_refit <- get_refit(model, y_star, ...)
+        fef <- get_fixef(model_refit)
+        vc <- get_vcov(model_refit)
+        out$simulation_fixef[[i]] <- fef
+        out$simulation_vcov[[i]] <- vc
 
-    statistic <- compute_statistic(coefs = fef, vcov = vc, generator_coef = test_coefficients)
-    out$pvalues_matrix[, i] <- compute_p_values(statistic = statistic)
+        statistic <- compute_statistic(coefs = fef, vcov = vc, generator_coef = test_coefficients)
+        out$pvalues_matrix[, i] <- compute_p_values(statistic = statistic)
 
-    pj <- compute_p_values_joint(
-      coefs = fef,
-      vcov = vc,
-      generator_coef = test_coefficients
+        pj <- compute_p_values_joint(
+          coefs = fef,
+          vcov = vc,
+          generator_coef = test_coefficients
+        )
+        out$pvalues_joint[i] <- pj[[1]]
+        out$ginv_used[i] <- pj[[2]]
+        try(out$converged[i] <- get_converged(model_refit), silent = TRUE)
+      },
+      silent = TRUE
     )
-    out$pvalues_joint[i] <- pj[[1]]
-    out$ginv_used[i] <- pj[[2]]
   }
   if ((ginv_uses <- sum(out$ginv_used)) > 0) {
     warning(
@@ -148,6 +153,9 @@ get_p_values <- function(model, n_sim = 1000, responses = NULL, generator = NULL
   }
   if ((sum_not_conv <- sum(!out$converged, na.rm = TRUE)) > 0) {
     warning("Model didn't converge in ", sum_not_conv, " simulations")
+  }
+  if (anyNA(out$pvalues_joint)) {
+    warning("At least one of the refitted models produced an error.")
   }
 
   class(out) <- "LD_pvalues"
