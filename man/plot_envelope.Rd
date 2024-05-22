@@ -13,7 +13,7 @@ plot_envelope(
 )
 }
 \arguments{
-\item{model}{A model \code{\link[stats:simulate]{stats::simulate()}} and compatible with \code{\link[=get_refit]{get_refit()}}.}
+\item{model}{A model that has a \code{\link[stats:simulate]{stats::simulate()}} method and is compatible with \code{\link[=get_refit]{get_refit()}}.}
 
 \item{colors}{A vector with two strings, the first element is the color of the
 elements outside of the envelope, the second is for the elements inside.}
