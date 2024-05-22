@@ -67,7 +67,7 @@ compute_p_values_joint <- function(coefs, vcov, generator_coef) {
 #'   the fitted values of the response. If `NULL` defaults to model fixed effects
 #' @param ... Additional arguments to be passed to [get_refit()].
 #'
-#' @return An object of class `LD_pvalues` class, which contains the following components:
+#' @return An object of class `LD_pvalues`, which contains the following components:
 #' \describe{
 #'   \item{test_coefficients}{Vector of coefficients being tested.}
 #'   \item{pvalues_matrix}{Matrix of p-values where each column corresponds to a

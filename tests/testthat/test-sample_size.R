@@ -190,7 +190,7 @@ test_that("get_p_values() with custom method works", {
 
   fit <- foo(mpg ~ cyl, mtcars)
 
-  sim <- get_p_values(fit, n_sim = 2)
+  suppressWarnings(sim <- get_p_values(fit, n_sim = 2))
 
   expect_identical(sim$simulation_fixef[[1]], c(NA, NA))
 
