@@ -57,6 +57,11 @@ envelope <- function(model, residual_fn = stats::rstudent,
       silent = TRUE
     )
   }
+
+  if (anyNA(e)) {
+    warning("At least one of the refitted models produced an error.")
+  }
+
   es <- apply(e, 1, stats::quantile, probs = c(alpha / 2, .5, 1 - alpha / 2), na.rm = TRUE)
 
   tdsort <- sort(td)
