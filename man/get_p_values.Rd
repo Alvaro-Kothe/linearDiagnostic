@@ -29,7 +29,7 @@ the fitted values of the response. If \code{NULL} defaults to model fixed effect
 \item{...}{Additional arguments to be passed to \code{\link[=get_refit]{get_refit()}}.}
 }
 \value{
-An object of class \code{LD_pvalues} class, which contains the following components:
+An object of class \code{LD_pvalues}, which contains the following components:
 \describe{
 \item{test_coefficients}{Vector of coefficients being tested.}
 \item{pvalues_matrix}{Matrix of p-values where each column corresponds to a
