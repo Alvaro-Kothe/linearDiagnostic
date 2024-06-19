@@ -3,11 +3,14 @@
 \name{get_vcov}
 \alias{get_vcov}
 \alias{get_vcov.default}
+\alias{get_vcov.glmmTMB}
 \title{Get covariance matrix}
 \usage{
 get_vcov(object)
 
 \method{get_vcov}{default}(object)
+
+\method{get_vcov}{glmmTMB}(object)
 }
 \arguments{
 \item{object}{A model object for which the covariance matrix is to be retrieved.}
