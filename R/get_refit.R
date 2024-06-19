@@ -81,3 +81,9 @@ update_using_formula <- function(object, new_response, ...) {
 get_refit.merMod <- function(object, new_response, ...) {
   lme4::refit(object, new_response, ...)
 }
+
+#' @rdname get_refit
+#' @export
+get_refit.glmmTMB <- function(object, new_response, ...) {
+  glmmTMB::refit(object, new_response, ...)
+}

@@ -58,3 +58,17 @@ test_that("envelope works with lme4::glmer", {
   )
   expect_no_error(envelope(fit, n_sim = 2, residual_fn = residuals, plot.it = FALSE))
 })
+
+test_that("envelope works with glmmTMB", {
+  data("Salamanders", package = "glmmTMB")
+  m1 <- glmmTMB::glmmTMB(count ~ mined + (1 | site),
+    zi = ~mined,
+    family = poisson, data = Salamanders
+  )
+  expect_no_error(envelope(m1, n_sim = 2, residual_fn = residuals))
+  m2 <- glmmTMB::glmmTMB(count ~ spp + mined + (1 | site),
+    zi = ~ spp + mined,
+    family = glmmTMB::nbinom2, data = Salamanders
+  )
+  expect_no_error(envelope(m2, n_sim = 2, residual_fn = residuals))
+})

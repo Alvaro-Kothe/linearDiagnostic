@@ -4,6 +4,7 @@
 \alias{get_fixef}
 \alias{get_fixef.default}
 \alias{get_fixef.merMod}
+\alias{get_fixef.glmmTMB}
 \title{Get fixed effects}
 \usage{
 get_fixef(object)
@@ -11,6 +12,8 @@ get_fixef(object)
 \method{get_fixef}{default}(object)
 
 \method{get_fixef}{merMod}(object)
+
+\method{get_fixef}{glmmTMB}(object)
 }
 \arguments{
 \item{object}{A model object for which fixed effects are to be retrieved.}

@@ -4,6 +4,7 @@
 \alias{get_refit}
 \alias{get_refit.default}
 \alias{get_refit.merMod}
+\alias{get_refit.glmmTMB}
 \title{Refit a model}
 \usage{
 get_refit(object, new_response, ...)
@@ -11,6 +12,8 @@ get_refit(object, new_response, ...)
 \method{get_refit}{default}(object, new_response, ...)
 
 \method{get_refit}{merMod}(object, new_response, ...)
+
+\method{get_refit}{glmmTMB}(object, new_response, ...)
 }
 \arguments{
 \item{object}{A model.}

@@ -131,6 +131,15 @@ test_that("Can compute p_values from merMod class", {
   expect_equal(p_values$converged, c(TRUE, TRUE))
 })
 
+test_that("can compute p_values from glmmTMB", {
+  data("Salamanders", package = "glmmTMB")
+  m1 <- glmmTMB::glmmTMB(count ~ mined + (1 | site),
+    zi = ~mined,
+    family = poisson, data = Salamanders
+  )
+  expect_no_error(get_p_values(m1, n_sim = 2))
+})
+
 test_that("get_p_values() with custom method works", {
   foo <- function(formula, data) {
     model_frame <- model.frame(formula, data = data)

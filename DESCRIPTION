@@ -8,6 +8,7 @@ Authors@R:
 Description: Convenience functions to diagnose linear statistical models.
 License: MIT + file LICENSE
 Suggests: 
+    glmmTMB,
     lme4,
     MASS,
     testthat (>= 3.0.0)

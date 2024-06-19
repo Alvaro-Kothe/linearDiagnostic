@@ -25,6 +25,12 @@ get_fixef.merMod <- function(object) {
   lme4::fixef(object)
 }
 
+#' @rdname get_fixef
+#' @export
+get_fixef.glmmTMB <- function(object) {
+  glmmTMB::fixef(object)$cond
+}
+
 #' Get covariance matrix
 #'
 #' Retrieves the covariance matrix for the fixed effects.
@@ -42,6 +48,12 @@ get_vcov <- function(object) {
 #' @export
 get_vcov.default <- function(object) {
   as.matrix(stats::vcov(object))
+}
+
+#' @rdname get_vcov
+#' @export
+get_vcov.glmmTMB <- function(object) {
+  as.matrix(stats::vcov(object)$cond)
 }
 
 #' Did the model converged
