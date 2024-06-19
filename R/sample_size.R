@@ -99,6 +99,22 @@ get_p_values <- function(model, n_sim = 1000, responses = NULL, generator = NULL
   if (is.null(test_coefficients)) {
     test_coefficients <- get_fixef(model)
   }
+  if (is.null(names(test_coefficients))) {
+    names(test_coefficients) <- paste0("par_", seq_along(test_coefficients))
+  }
+
+  out$responses <- if (!is.null(responses)) {
+    if (!is.list(responses)) {
+      stop("`new_responses` should be a list")
+    }
+    responses
+  } else if (!is.null(generator)) {
+    replicate(n_sim, generator(model), simplify = FALSE)
+  } else {
+    stats::simulate(model, n_sim)
+  }
+  # If the user provided a list as responses, use the length of that list
+  n_sim <- length(out$responses)
   out$test_coefficients <- test_coefficients
   out$pvalues_matrix <- matrix(NA, nrow = length(test_coefficients), ncol = n_sim)
   rownames(out$pvalues_matrix) <- names(test_coefficients)
@@ -107,16 +123,6 @@ get_p_values <- function(model, n_sim = 1000, responses = NULL, generator = NULL
   out$simulation_vcov <- list()
   out$converged <- rep(NA, n_sim)
   out$ginv_used <- logical(n_sim)
-  out$responses <- if (!is.null(responses)) {
-    if (!is.list(responses) || length(responses) != n_sim) {
-      stop("`new_responses` should be a list with length `n_sim`")
-    }
-    responses
-  } else if (!is.null(generator)) {
-    replicate(n_sim, generator(model), simplify = FALSE)
-  } else {
-    stats::simulate(model, n_sim)
-  }
 
   for (i in seq_len(n_sim)) {
     y_star <- out$responses[[i]]
