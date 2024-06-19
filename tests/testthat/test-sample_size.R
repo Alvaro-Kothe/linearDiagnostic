@@ -28,7 +28,9 @@ test_that("test_coefficients generate different results", {
   # Test if all elements are close to 0, as test_coefs were very high
   expect_true(all(p_values_test_coefs$pvalues_joint < 1e-8))
   expect_true(all(p_values_test_coefs$pvalues_matrix < 1e-8))
-  expect_false(identical(p_values_regular, p_values_test_coefs))
+  expect_false(identical(p_values_regular$pvalues_joint, p_values_test_coefs$pvalues_joint))
+  expect_named(p_values_regular$test_coefficients, c("(Intercept)", "x"))
+  expect_identical(p_values_test_coefs$test_coefficients, c(par_1 = 1000000, par_2 = 1000000))
 })
 
 test_that("rownames matrix is the same as model's coefficients names", {
