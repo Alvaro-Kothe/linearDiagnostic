@@ -13,6 +13,8 @@
   discrepancy_tol = 0.1,
   plot_uniform = TRUE,
   uniform_legend = TRUE,
+  converged_only = FALSE,
+  no_ginv = FALSE,
   ylab = "Empirical cumulative distribution",
   xlab = "p-value",
   ...,
@@ -37,6 +39,11 @@ If index is bigger than the number of coefficients it plots the joint p_value.}
 
 \item{uniform_legend}{Logical. If TRUE, a legend is added to the plot to
 distinguish between the p-value and U(0, 1) curves. Defaults to TRUE.}
+
+\item{converged_only}{Use p-values from converged models only.}
+
+\item{no_ginv}{Don't use p-values obtained from generalized inverses.
+This option only applies to the joint test p-value.}
 
 \item{ylab}{The label for the y-axis. Defaults to "Empirical cumulative distribution".}
 
