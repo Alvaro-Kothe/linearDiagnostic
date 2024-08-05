@@ -115,6 +115,9 @@ plot_res_vs_linear_predictor <- function(model, residual_fn = stats::rstandard,
 #' @param plot_uniform Logical. If TRUE, plot uniform distribution.
 #' @param uniform_legend Logical. If TRUE, a legend is added to the plot to
 #'   distinguish between the p-value and U(0, 1) curves. Defaults to TRUE.
+#' @param converged_only Use p-values from converged models only.
+#' @param no_ginv Don't use p-values obtained from generalized inverses.
+#'   This option only applies to the joint test p-value.
 #' @param ylab The label for the y-axis. Defaults to "Empirical cumulative distribution".
 #' @param xlab The label for the x-axis. Defaults to "p-value".
 #' @param ... extra arguments passed to [graphics::plot]
@@ -135,6 +138,7 @@ plot.LD_pvalues <- function(x,
                             ks_test = TRUE, signif = c(0.01, 0.05, 0.10),
                             discrepancy_tol = .1,
                             plot_uniform = TRUE, uniform_legend = TRUE,
+                            converged_only = FALSE, no_ginv = FALSE,
                             ylab = "Empirical cumulative distribution", xlab = "p-value",
                             ...,
                             ask = prod(graphics::par("mfcol")) < length(which) && grDevices::dev.interactive()) {
@@ -142,8 +146,15 @@ plot.LD_pvalues <- function(x,
     oask <- grDevices::devAskNewPage(TRUE)
     on.exit(grDevices::devAskNewPage(oask))
   }
+  mask <- if (converged_only) x$converged else TRUE
   for (i in which) {
-    p_values <- if (i > length(x$test_coefficients)) x$pvalues_joint else x$pvalues_matrix[i, ]
+    plot_joint <- i > length(x$test_coefficients)
+    p_values <- if (plot_joint) x$pvalues_joint else x$pvalues_matrix[i, ]
+    p_values <- if (plot_joint && no_ginv) p_values[mask & !x$ginv_used] else p_values[mask]
+    if (length(p_values) == 0L) {
+      stop("No p-value to plot.")
+    }
+
     plot_ecdf_pvalue(p_values,
       ks_test = ks_test, signif = signif,
       discrepancy_tol = discrepancy_tol,
